@@ -1,36 +1,36 @@
 [gd_scene load_steps=11 format=3 uid="uid://cixgq6lfcf62l"]
 
 [ext_resource type="Script" uid="uid://bx4iqwtx80nnt" path="res://Enemies/DummyEnemy/DummyEnemy.gd" id="1_wiado"]
+[ext_resource type="Script" uid="uid://cajvw2t2hbwrs" path="res://resources/enemy_stats.gd" id="2_6rlpo"]
+[ext_resource type="PackedScene" uid="uid://drfbw73o4elmx" path="res://assets/KayKit_Skeletons_1.1_FREE/characters/gltf/Skeleton_Rogue.glb" id="2_70q6i"]
 [ext_resource type="Script" uid="uid://d0170xy477263" path="res://Shared/Scripts/HealthComponent.gd" id="2_gociu"]
-[ext_resource type="Texture2D" uid="uid://dcdhx0cji8u46" path="res://assets/256x256/Grass/Grass 7 - 256x256.png" id="2_w0w3w"]
 [ext_resource type="PackedScene" uid="uid://c1hs512dj70sh" path="res://UI-HUD/Enemy/EnemyHealthbar3D.tscn" id="4_y7v25"]
 [ext_resource type="Script" uid="uid://r432o4ctwgv0" path="res://Enemies/EnemyComponents/EnemyMovementComponent.gd" id="5_16re4"]
 [ext_resource type="Script" uid="uid://bwvp7e2v0icok" path="res://Enemies/EnemyComponents/EnemyCombatComponent.gd" id="6_w0w3w"]
 
+[sub_resource type="Resource" id="Resource_6rlpo"]
+script = ExtResource("2_6rlpo")
+model_scene = ExtResource("2_70q6i")
+metadata/_custom_type_script = "uid://cajvw2t2hbwrs"
+
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_4xrxs"]
-
-[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_tddfb"]
-albedo_texture = ExtResource("2_w0w3w")
-
-[sub_resource type="CapsuleMesh" id="CapsuleMesh_y7v25"]
-material = SubResource("StandardMaterial3D_tddfb")
 
 [sub_resource type="ViewportTexture" id="ViewportTexture_y7v25"]
 viewport_path = NodePath("SubViewport")
 
-[node name="DummyEnemy" type="CharacterBody3D" node_paths=PackedStringArray("health_component", "movement_component", "combat_component", "visual_mesh", "collision_shape")]
+[node name="DummyEnemy" type="CharacterBody3D" node_paths=PackedStringArray("health_component", "movement_component", "combat_component", "collision_shape", "visuals_container")]
 script = ExtResource("1_wiado")
+stats = SubResource("Resource_6rlpo")
 health_component = NodePath("Components/HealthComponent")
 movement_component = NodePath("Components/MovementComponent")
 combat_component = NodePath("Components/EnemyCombatComponent")
-visual_mesh = NodePath("MeshInstance3D")
 collision_shape = NodePath("CollisionShape3D")
+visuals_container = NodePath("VisualsContainer")
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="."]
 shape = SubResource("CapsuleShape3D_4xrxs")
 
-[node name="MeshInstance3D" type="MeshInstance3D" parent="."]
-mesh = SubResource("CapsuleMesh_y7v25")
+[node name="VisualsContainer" type="Node3D" parent="."]
 
 [node name="EnemyHealthbar3D" parent="." instance=ExtResource("4_y7v25")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.5, 0)

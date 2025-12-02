@@ -23,3 +23,7 @@ TODO: make Sure player has no control after death until respawn.
 
 maybe add death/respawn screen
 - Added death fade out, respawn fade in, button to respawn etc.
+
+
+Enemies facing backward, was in the middle of giving them animations, meshes (pcked scnee)
+and everything. ^
