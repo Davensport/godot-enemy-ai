@@ -1,26 +1,13 @@
-[gd_scene load_steps=6 format=3 uid="uid://bfo2it1jmjbyh"]
+[gd_scene load_steps=4 format=3 uid="uid://bfo2it1jmjbyh"]
 
 [ext_resource type="PackedScene" uid="uid://cixgq6lfcf62l" path="res://Enemies/DummyEnemy/dummy_enemy.tscn" id="1_i1gu6"]
-[ext_resource type="PackedScene" uid="uid://cp4gwmr456ate" path="res://Enemies/EnemyBaseScenes/SkeleRouge_base.tscn" id="2_4dplt"]
-[ext_resource type="Script" uid="uid://c2602lvc36sbp" path="res://resources/SkeleMage_stats.gd" id="3_mulg6"]
-
-[sub_resource type="Resource" id="Resource_4dplt"]
-script = ExtResource("3_mulg6")
-move_speed = 6.0
-acceleration = 12.0
-attack_damage = 12.0
-attack_range = 1.7
-attack_rate = 1.7
-model_scene = ExtResource("2_4dplt")
-scale = 0.6
-model_rotation_y = 180.0
-metadata/_custom_type_script = "uid://c2602lvc36sbp"
+[ext_resource type="Resource" uid="uid://ckyrbqqoec1vv" path="res://resources/SkeleRouge_stats.tres" id="2_x3abm"]
 
 [sub_resource type="ViewportTexture" id="ViewportTexture_y7v25"]
 viewport_path = NodePath("SubViewport")
 
 [node name="SkeleRouge" instance=ExtResource("1_i1gu6")]
-stats = SubResource("Resource_4dplt")
+stats = ExtResource("2_x3abm")
 
 [node name="EnemyHealthbar3D" parent="." index="2"]
 texture = SubResource("ViewportTexture_y7v25")

@@ -1,2 +1,0 @@
-extends EnemyStats
-class_name SkeleRougeStats

@@ -1,9 +1,12 @@
-[gd_resource type="Resource" script_class="SkeleRougeStats" load_steps=3 format=3 uid="uid://djb54udkb04ta"]
+[gd_resource type="Resource" script_class="EnemyStats" load_steps=4 format=3 uid="uid://djb54udkb04ta"]
 
-[ext_resource type="Script" uid="uid://c2602lvc36sbp" path="res://resources/SkeleMage_stats.gd" id="1_el5ti"]
+[ext_resource type="Script" uid="uid://cajvw2t2hbwrs" path="res://resources/enemy_stats.gd" id="1_el5ti"]
 [ext_resource type="PackedScene" uid="uid://b6yfci4ywu0o0" path="res://Enemies/EnemyBaseScenes/skeleton_mage_base.tscn" id="1_nu4sl"]
+[ext_resource type="PackedScene" uid="uid://cjcti8wwatp0g" path="res://Enemies/Projectiles/Test_Fireball.tscn" id="2_2y18t"]
 
 [resource]
 script = ExtResource("1_el5ti")
+attack_range = 100.0
 model_scene = ExtResource("1_nu4sl")
-metadata/_custom_type_script = "uid://c2602lvc36sbp"
+projectile_scene = ExtResource("2_2y18t")
+metadata/_custom_type_script = "uid://cajvw2t2hbwrs"

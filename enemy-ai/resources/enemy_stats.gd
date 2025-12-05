@@ -18,3 +18,12 @@ class_name EnemyStats
 @export var model_scene: PackedScene  
 @export var scale: float = 1.0
 @export var model_rotation_y: float = 0.0
+
+
+# IF PROJECTILE
+
+@export_group("Magic Settings")
+# The fireball/magic bolt object to spawn
+@export var projectile_scene: PackedScene 
+@export var projectile_speed: float = 10.0
+@export var cast_color: Color = Color.PURPLE # Optional: for particle effects
