@@ -6,7 +6,8 @@ extends CharacterBody3D
 
 # --- 2. SETTINGS ---
 @export_group("Settings")
-@export var auto_respawn: bool = true
+@export var auto_respawn: bool = false # turned this off for testing, is an export var for each enemy however if you want to change it there.
+ # dont think this should really ever be on, except like a practice dummy or something.
 @export var respawn_time: float = 3.0
 
 # --- 3. COMPONENT REFERENCES ---
@@ -296,8 +297,6 @@ func _on_death():
 	current_state = State.DEAD
 	SignalBus.enemy_died.emit(self)
 	velocity = Vector3.ZERO
-	# Note: We usually keep visuals visible for death animation
-	# collision_shape.set_deferred("disabled", true) 
 	
 	if auto_respawn:
 		current_state = State.RESPAWNING

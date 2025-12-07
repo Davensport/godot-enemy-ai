@@ -35,6 +35,11 @@ Make enemies allow additional animationplayers / skeletons
 - Can now use any skeleton/animationplayer. need to put PROPER animationplayer on 'xxxx_base.tscn' then in the 'Real_Enemy'
 	need to link animations to states under enemy stats resource, can also modify animation speed.
 
+I think enemies are respawning - so max of 5, but everytime you kill them they respawn  ? 
+	so every kill means max enemies goes up by 1 (unintended.)
+- fixed, silly. dummyenemy.gd has auto respawn variable that was true, 
+	probably should only be true if you are hitting a practice dummy or testing something.
+
 =====================================  TO DO   ===========================================
 
 Enemies dont stagger or anything if theyre hit. need them to stagger and cancel animation, etc.
@@ -44,6 +49,3 @@ ENEMY AI: right now they just follow, super basic.
 Maybe add slide mechanic, or if we go forward with beardo maybe like a roll or something.
 
 @@Also todo - not get to focused, this is supposed to be general purpose for reuse.@@
-
-I think enemies are respawning - so max of 5, but everytime you kill them they respawn  ? 
-	so every kill means max enemies goes up by 1 (unintended.)
