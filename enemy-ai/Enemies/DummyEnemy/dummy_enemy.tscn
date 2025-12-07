@@ -1,4 +1,4 @@
-[gd_scene load_steps=10 format=3 uid="uid://cixgq6lfcf62l"]
+[gd_scene load_steps=9 format=3 uid="uid://cixgq6lfcf62l"]
 
 [ext_resource type="Script" uid="uid://bx4iqwtx80nnt" path="res://Enemies/DummyEnemy/DummyEnemy.gd" id="1_wiado"]
 [ext_resource type="Script" uid="uid://cajvw2t2hbwrs" path="res://resources/enemy_stats.gd" id="2_6rlpo"]
@@ -11,8 +11,6 @@
 script = ExtResource("2_6rlpo")
 metadata/_custom_type_script = "uid://cajvw2t2hbwrs"
 
-[sub_resource type="CapsuleShape3D" id="CapsuleShape3D_4xrxs"]
-
 [sub_resource type="ViewportTexture" id="ViewportTexture_y7v25"]
 viewport_path = NodePath("SubViewport")
 
@@ -24,10 +22,7 @@ health_component = NodePath("Components/HealthComponent")
 movement_component = NodePath("Components/MovementComponent")
 combat_component = NodePath("Components/EnemyCombatComponent")
 visuals_container = NodePath("VisualsContainer")
-collision_shape = NodePath("CollisionShape3D")
-
-[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
-shape = SubResource("CapsuleShape3D_4xrxs")
+collision_shape = NodePath("")
 
 [node name="VisualsContainer" type="Node3D" parent="."]
 

@@ -1,11 +1,8 @@
-[gd_scene load_steps=5 format=3 uid="uid://dqxrlmvwm22c7"]
+[gd_scene load_steps=4 format=3 uid="uid://dqxrlmvwm22c7"]
 
 [ext_resource type="ArrayMesh" uid="uid://d33t1oeff0eho" path="res://assets/Donyatsu/extracted/Donyatsu.Cubo.mesh" id="1_bhxih"]
 [ext_resource type="Skin" uid="uid://rfc1qaa7s41r" path="res://assets/Donyatsu/extracted/Donyatsu.Cubo.skin.tres" id="2_mtsqa"]
 [ext_resource type="Material" uid="uid://cu1vsc0nini2f" path="res://assets/Donyatsu/Materials/GatomMat1.material" id="3_xph2c"]
-
-[sub_resource type="SphereShape3D" id="SphereShape3D_bhxih"]
-radius = 0.826
 
 [node name="Donyatsu" type="Node3D"]
 
@@ -59,7 +56,3 @@ blend_shapes/_Bow = 0.0
 "blend_shapes/_Wink L" = 0.0
 "blend_shapes/_Wink R" = 0.0
 surface_material_override/0 = ExtResource("3_xph2c")
-
-[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.844018, 0.2394259)
-shape = SubResource("SphereShape3D_bhxih")

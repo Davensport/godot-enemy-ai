@@ -7,15 +7,17 @@
 viewport_path = NodePath("SubViewport")
 
 [sub_resource type="SphereShape3D" id="SphereShape3D_8cy67"]
-radius = 0.826
 
-[node name="Donyatsu" instance=ExtResource("1_ot37s")]
+[node name="Donyatsu" node_paths=PackedStringArray("collision_shape") instance=ExtResource("1_ot37s")]
 collision_layer = 5
+motion_mode = 1
 stats = ExtResource("2_8cy67")
+collision_shape = NodePath("CollisionShape3D")
 
-[node name="EnemyHealthbar3D" parent="." index="2"]
+[node name="EnemyHealthbar3D" parent="." index="1"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.6970363, 0)
 texture = SubResource("ViewportTexture_y7v25")
 
-[node name="CollisionShape3D2" type="CollisionShape3D" parent="." index="5"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.8452468, 0.2394259)
+[node name="CollisionShape3D" type="CollisionShape3D" parent="." index="4"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.8675699, 0)
 shape = SubResource("SphereShape3D_8cy67")
