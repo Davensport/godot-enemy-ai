@@ -1,4 +1,4 @@
-[gd_scene load_steps=16 format=3 uid="uid://disnqn4r1gsq"]
+[gd_scene load_steps=18 format=3 uid="uid://disnqn4r1gsq"]
 
 [ext_resource type="PackedScene" uid="uid://dg1cnchkr2ne1" path="res://Enemies/Spawner/EnemySpawner.tscn" id="1_v1gob"]
 [ext_resource type="PackedScene" uid="uid://qvf1fwy1u8vr" path="res://Scenes/sample_arena.tscn" id="3_kln2b"]
@@ -8,6 +8,7 @@
 [ext_resource type="PackedScene" uid="uid://drepnuqy42gmy" path="res://Enemies/Real_Enemies/SkeleWarrior.tscn" id="6_jw32o"]
 [ext_resource type="PackedScene" uid="uid://fl35pvoq34i8" path="res://Player/Spawner/player_spawner.tscn" id="6_v1gob"]
 [ext_resource type="PackedScene" uid="uid://beeu2vt163dw0" path="res://Enemies/Real_Enemies/Donyatsu.tscn" id="7_50glp"]
+[ext_resource type="PackedScene" uid="uid://dwo5owt1ajxim" path="res://Enemies/Real_Enemies/testenemy.tscn" id="8_vy5pj"]
 
 [sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_r150o"]
 sky_horizon_color = Color(0.66224277, 0.6717428, 0.6867428, 1)
@@ -46,6 +47,12 @@ enemy_scene = ExtResource("7_50glp")
 spawn_weight = 5
 metadata/_custom_type_script = "uid://mfp023ur7mgf"
 
+[sub_resource type="Resource" id="Resource_4kpch"]
+script = ExtResource("3_v1gob")
+enemy_scene = ExtResource("8_vy5pj")
+spawn_weight = 100
+metadata/_custom_type_script = "uid://mfp023ur7mgf"
+
 [node name="Main" type="Node3D"]
 
 [node name="WorldEnvironment" type="WorldEnvironment" parent="."]
@@ -61,6 +68,6 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.8135037, 5.2934937, 5.52404
 
 [node name="EnemySpawner" parent="." instance=ExtResource("1_v1gob")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.0417542, 0)
-spawn_list = Array[ExtResource("3_v1gob")]([SubResource("Resource_50glp"), SubResource("Resource_jw32o"), SubResource("Resource_vy5pj"), SubResource("Resource_bmxlf")])
+spawn_list = Array[ExtResource("3_v1gob")]([SubResource("Resource_50glp"), SubResource("Resource_jw32o"), SubResource("Resource_vy5pj"), SubResource("Resource_bmxlf"), SubResource("Resource_4kpch")])
 
 [node name="SampleArena" parent="." instance=ExtResource("3_kln2b")]

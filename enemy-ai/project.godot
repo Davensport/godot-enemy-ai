@@ -36,6 +36,7 @@ folder_colors={
 "res://assets/Donyatsu/": "red",
 "res://assets/KayKit_Skeletons_1.1_FREE/": "yellow",
 "res://assets/PlayerCharacter/": "green",
+"res://assets/Test_Assets/": "gray",
 "res://resources/": "teal"
 }
 
@@ -92,4 +93,3 @@ interact={
 3d_physics/layer_1="World"
 3d_physics/layer_2="Player"
 3d_physics/layer_3="Enemies"
-3d_physics/layer_4="GroundObstacles"

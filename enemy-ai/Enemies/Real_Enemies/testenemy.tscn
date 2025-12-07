@@ -1,0 +1,22 @@
+[gd_scene load_steps=5 format=3 uid="uid://dwo5owt1ajxim"]
+
+[ext_resource type="PackedScene" uid="uid://cixgq6lfcf62l" path="res://Enemies/DummyEnemy/dummy_enemy.tscn" id="1_1q7bi"]
+[ext_resource type="Resource" uid="uid://dwlm0b03kuxgy" path="res://resources/test_stats.tres" id="2_giokv"]
+
+[sub_resource type="ViewportTexture" id="ViewportTexture_y7v25"]
+viewport_path = NodePath("SubViewport")
+
+[sub_resource type="CapsuleShape3D" id="CapsuleShape3D_kgmov"]
+
+[node name="testenemy" node_paths=PackedStringArray("collision_shape") instance=ExtResource("1_1q7bi")]
+stats = ExtResource("2_giokv")
+collision_shape = NodePath("CollisionShape3D")
+
+[node name="VisualsContainer" parent="." index="0"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -1, 0)
+
+[node name="EnemyHealthbar3D" parent="." index="1"]
+texture = SubResource("ViewportTexture_y7v25")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="." index="4"]
+shape = SubResource("CapsuleShape3D_kgmov")
