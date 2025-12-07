@@ -1,0 +1,66 @@
+[gd_scene load_steps=16 format=3 uid="uid://disnqn4r1gsq"]
+
+[ext_resource type="PackedScene" uid="uid://dg1cnchkr2ne1" path="res://Enemies/Spawner/EnemySpawner.tscn" id="1_v1gob"]
+[ext_resource type="PackedScene" uid="uid://qvf1fwy1u8vr" path="res://Scenes/sample_arena.tscn" id="3_kln2b"]
+[ext_resource type="PackedScene" uid="uid://can6v4kxdrge2" path="res://Enemies/Real_Enemies/SkeleMage.tscn" id="3_rgh2o"]
+[ext_resource type="Script" uid="uid://mfp023ur7mgf" path="res://Enemies/other_freaking_enemy_stuff_that_idk_where_to_put/SpawnDefinition.gd" id="3_v1gob"]
+[ext_resource type="PackedScene" uid="uid://bfo2it1jmjbyh" path="res://Enemies/Real_Enemies/SkeleRouge.tscn" id="5_v1gob"]
+[ext_resource type="PackedScene" uid="uid://drepnuqy42gmy" path="res://Enemies/Real_Enemies/SkeleWarrior.tscn" id="6_jw32o"]
+[ext_resource type="PackedScene" uid="uid://fl35pvoq34i8" path="res://Player/Spawner/player_spawner.tscn" id="6_v1gob"]
+[ext_resource type="PackedScene" uid="uid://beeu2vt163dw0" path="res://Enemies/Real_Enemies/Donyatsu.tscn" id="7_50glp"]
+
+[sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_r150o"]
+sky_horizon_color = Color(0.66224277, 0.6717428, 0.6867428, 1)
+ground_horizon_color = Color(0.66224277, 0.6717428, 0.6867428, 1)
+
+[sub_resource type="Sky" id="Sky_idj7w"]
+sky_material = SubResource("ProceduralSkyMaterial_r150o")
+
+[sub_resource type="Environment" id="Environment_kln2b"]
+background_mode = 2
+sky = SubResource("Sky_idj7w")
+tonemap_mode = 2
+glow_enabled = true
+
+[sub_resource type="Resource" id="Resource_50glp"]
+script = ExtResource("3_v1gob")
+enemy_scene = ExtResource("3_rgh2o")
+spawn_weight = 5
+metadata/_custom_type_script = "uid://mfp023ur7mgf"
+
+[sub_resource type="Resource" id="Resource_jw32o"]
+script = ExtResource("3_v1gob")
+enemy_scene = ExtResource("5_v1gob")
+spawn_weight = 5
+metadata/_custom_type_script = "uid://mfp023ur7mgf"
+
+[sub_resource type="Resource" id="Resource_vy5pj"]
+script = ExtResource("3_v1gob")
+enemy_scene = ExtResource("6_jw32o")
+spawn_weight = 5
+metadata/_custom_type_script = "uid://mfp023ur7mgf"
+
+[sub_resource type="Resource" id="Resource_bmxlf"]
+script = ExtResource("3_v1gob")
+enemy_scene = ExtResource("7_50glp")
+spawn_weight = 5
+metadata/_custom_type_script = "uid://mfp023ur7mgf"
+
+[node name="Main" type="Node3D"]
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+environment = SubResource("Environment_kln2b")
+
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
+transform = Transform3D(-0.8660254, -0.43301278, 0.25, 0, 0.49999997, 0.86602545, -0.50000006, 0.75, -0.43301266, 0, 0, 0)
+light_energy = 2.0
+shadow_enabled = true
+
+[node name="PlayerSpawner" parent="." instance=ExtResource("6_v1gob")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.8135037, 5.2934937, 5.5240483)
+
+[node name="EnemySpawner" parent="." instance=ExtResource("1_v1gob")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.0417542, 0)
+spawn_list = Array[ExtResource("3_v1gob")]([SubResource("Resource_50glp"), SubResource("Resource_jw32o"), SubResource("Resource_vy5pj"), SubResource("Resource_bmxlf")])
+
+[node name="SampleArena" parent="." instance=ExtResource("3_kln2b")]

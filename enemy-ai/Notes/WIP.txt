@@ -1,4 +1,4 @@
-Fixed issues:
+=============================================   Fixed issues   ===========================================================
 	
 Projectile only shoots straight, not up/down.
 -Projectile Now Shoots where aiming (vertically)
@@ -13,8 +13,6 @@ Need to create a player spawner, and remove the script attached to Main level
 Work on Simple Enemy AI, Animations, etc. how smart?
 - have enemy ai that follow,
 
-TODO ENEMY AI: right now they just follow, super basic. 
-
 Enemy AI - when player dies, they do not retarget.
 - They now retarget
 
@@ -28,18 +26,16 @@ maybe add death/respawn screen
 Enemies facing backward, was in the middle of giving them animations, meshes (pcked scnee)
 - Enemies now have a rotation, you can flip them in the 'EnemyStats' sub resource. 
 - Can easily create new enemies
-x animations not done
+- animations done (kind of shit but they work for now)
 
-
-Flying Enemies
-Issue - When you have a flying enemy, their collision box must be touching the ground, which will give an innacurate hit box. 
-Fix - need to set up collision layers ? so they have one touching ground (navigation) and one for player attacks
-
-
-To do .
-Enemies dont stagger or anything if theyre hit. need them to stagger and cancel animation, etc.
-
-to do . 
 flying enemies - need to figure out ground/air hitbox .. .something something collision layers
-OR - - 2 collision shapes with different collision layers
-one for ground one for hitting. i think this is better but idk
+- Flying and ground enemies now have proper working hitboxes.
+
+
+=====================================  TO DO   ===========================================
+
+Enemies dont stagger or anything if theyre hit. need them to stagger and cancel animation, etc.
+ENEMY AI: right now they just follow, super basic. 
+
+Maybe add slide mechanic, or if we go forward with beardo maybe like a roll or something.
+Also todo - not get to focused, this is supposed to be general purpose for reuse.
