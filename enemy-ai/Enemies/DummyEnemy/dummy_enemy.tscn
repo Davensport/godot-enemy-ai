@@ -1,10 +1,16 @@
-[gd_scene load_steps=7 format=3 uid="uid://cixgq6lfcf62l"]
+[gd_scene load_steps=13 format=3 uid="uid://cixgq6lfcf62l"]
 
 [ext_resource type="Script" uid="uid://bx4iqwtx80nnt" path="res://Enemies/DummyEnemy/DummyEnemy.gd" id="1_wiado"]
 [ext_resource type="Script" uid="uid://d0170xy477263" path="res://Shared/Scripts/HealthComponent.gd" id="2_gociu"]
 [ext_resource type="PackedScene" uid="uid://c1hs512dj70sh" path="res://UI-HUD/Enemy/EnemyHealthbar3D.tscn" id="4_y7v25"]
 [ext_resource type="Script" uid="uid://r432o4ctwgv0" path="res://Enemies/EnemyComponents/EnemyMovementComponent.gd" id="5_16re4"]
+[ext_resource type="Script" uid="uid://buuexhw8g2fk1" path="res://Enemies/States/StateMachine.gd" id="6_i7dr5"]
 [ext_resource type="Script" uid="uid://bwvp7e2v0icok" path="res://Enemies/EnemyComponents/EnemyCombatComponent.gd" id="6_w0w3w"]
+[ext_resource type="Script" uid="uid://bbalghka8c2k4" path="res://Enemies/States/EnemyIdle.gd" id="7_wq81r"]
+[ext_resource type="Script" uid="uid://bkffiqq523v7i" path="res://Enemies/States/EnemyChase.gd" id="8_82ghf"]
+[ext_resource type="Script" uid="uid://h3ksuyk355h3" path="res://Enemies/States/EnemyAttack.gd" id="9_161yo"]
+[ext_resource type="Script" uid="uid://bv50gb75vjlid" path="res://Enemies/States/EnemyDeath.gd" id="10_8xkya"]
+[ext_resource type="Script" uid="uid://ce7nw8xd2xfio" path="res://Enemies/States/EnemyHit.gd" id="11_yrh3s"]
 
 [sub_resource type="ViewportTexture" id="ViewportTexture_y7v25"]
 viewport_path = NodePath("SubViewport")
@@ -36,3 +42,22 @@ nav_agent = NodePath("../../NavigationAgent3D")
 [node name="EnemyCombatComponent" type="Node3D" parent="Components" node_paths=PackedStringArray("actor")]
 script = ExtResource("6_w0w3w")
 actor = NodePath("../..")
+
+[node name="StateMachine" type="Node" parent="." node_paths=PackedStringArray("initial_state")]
+script = ExtResource("6_i7dr5")
+initial_state = NodePath("Idle")
+
+[node name="Idle" type="Node" parent="StateMachine"]
+script = ExtResource("7_wq81r")
+
+[node name="Chase" type="Node" parent="StateMachine"]
+script = ExtResource("8_82ghf")
+
+[node name="Attack" type="Node" parent="StateMachine"]
+script = ExtResource("9_161yo")
+
+[node name="Death" type="Node" parent="StateMachine"]
+script = ExtResource("10_8xkya")
+
+[node name="Hit" type="Node" parent="StateMachine"]
+script = ExtResource("11_yrh3s")

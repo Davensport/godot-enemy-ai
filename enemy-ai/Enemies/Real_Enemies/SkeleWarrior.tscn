@@ -21,3 +21,6 @@ texture = SubResource("ViewportTexture_y7v25")
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="." index="4"]
 shape = SubResource("CapsuleShape3D_0h4nk")
+
+[node name="StateMachine" parent="." index="5" node_paths=PackedStringArray("initial_state")]
+initial_state = NodePath("Idle")

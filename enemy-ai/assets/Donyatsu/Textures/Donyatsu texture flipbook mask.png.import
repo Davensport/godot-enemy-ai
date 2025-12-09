@@ -3,7 +3,7 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://5tiavqey0eo7"
-path.s3tc="res://.godot/imported/Donyatsu texture flipbook mask.png-5b2d2da4fb8f93d5fbf87cbf688d1304.s3tc.ctex"
+path.s3tc="res://.godot/imported/Donyatsu texture flipbook mask.png-ae55c670cdcfc480bb2e52de4f499796.s3tc.ctex"
 metadata={
 "imported_formats": ["s3tc_bptc"],
 "vram_texture": true
@@ -11,8 +11,8 @@ metadata={
 
 [deps]
 
-source_file="res://Assets/Donyatsu/Textures/Donyatsu texture flipbook mask.png"
-dest_files=["res://.godot/imported/Donyatsu texture flipbook mask.png-5b2d2da4fb8f93d5fbf87cbf688d1304.s3tc.ctex"]
+source_file="res://assets/Donyatsu/Textures/Donyatsu texture flipbook mask.png"
+dest_files=["res://.godot/imported/Donyatsu texture flipbook mask.png-ae55c670cdcfc480bb2e52de4f499796.s3tc.ctex"]
 
 [params]
 

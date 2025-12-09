@@ -3,7 +3,7 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://dv0pxa20plygg"
-path.s3tc="res://.godot/imported/Donyatsu texture OL mask.png-a8e6bdf3e91557de4dae42bb0b93c5fb.s3tc.ctex"
+path.s3tc="res://.godot/imported/Donyatsu texture OL mask.png-85a1d108ad8eb575a6abf5e08293bca8.s3tc.ctex"
 metadata={
 "imported_formats": ["s3tc_bptc"],
 "vram_texture": true
@@ -11,8 +11,8 @@ metadata={
 
 [deps]
 
-source_file="res://Assets/Donyatsu/Textures/Donyatsu texture OL mask.png"
-dest_files=["res://.godot/imported/Donyatsu texture OL mask.png-a8e6bdf3e91557de4dae42bb0b93c5fb.s3tc.ctex"]
+source_file="res://assets/Donyatsu/Textures/Donyatsu texture OL mask.png"
+dest_files=["res://.godot/imported/Donyatsu texture OL mask.png-85a1d108ad8eb575a6abf5e08293bca8.s3tc.ctex"]
 
 [params]
 

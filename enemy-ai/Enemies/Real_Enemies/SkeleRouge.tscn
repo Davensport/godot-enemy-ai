@@ -8,13 +8,12 @@ viewport_path = NodePath("SubViewport")
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_x3abm"]
 
-[node name="SkeleRouge" node_paths=PackedStringArray("health_component", "movement_component", "combat_component", "visuals_container", "collision_shape") instance=ExtResource("1_i1gu6")]
+[node name="SkeleRouge" node_paths=PackedStringArray("health_component", "movement_component", "combat_component", "visuals_container") instance=ExtResource("1_i1gu6")]
 stats = ExtResource("2_x3abm")
 health_component = NodePath("Components/HealthComponent")
 movement_component = NodePath("Components/MovementComponent")
 combat_component = NodePath("Components/EnemyCombatComponent")
 visuals_container = NodePath("VisualsContainer")
-collision_shape = NodePath("CollisionShape3D")
 
 [node name="EnemyHealthbar3D" parent="." index="1"]
 texture = SubResource("ViewportTexture_y7v25")

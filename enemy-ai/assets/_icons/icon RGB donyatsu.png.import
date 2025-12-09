@@ -3,7 +3,7 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://dvhljagi4xjmo"
-path.s3tc="res://.godot/imported/icon RGB donyatsu.png-551dd0f9e6d61036aeb538d096846756.s3tc.ctex"
+path.s3tc="res://.godot/imported/icon RGB donyatsu.png-b70e1631e294847ce8d12efbab2c4364.s3tc.ctex"
 metadata={
 "imported_formats": ["s3tc_bptc"],
 "vram_texture": true
@@ -11,8 +11,8 @@ metadata={
 
 [deps]
 
-source_file="res://Assets/_icons/icon RGB donyatsu.png"
-dest_files=["res://.godot/imported/icon RGB donyatsu.png-551dd0f9e6d61036aeb538d096846756.s3tc.ctex"]
+source_file="res://assets/_icons/icon RGB donyatsu.png"
+dest_files=["res://.godot/imported/icon RGB donyatsu.png-b70e1631e294847ce8d12efbab2c4364.s3tc.ctex"]
 
 [params]
 

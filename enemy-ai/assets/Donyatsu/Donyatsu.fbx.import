@@ -4,17 +4,18 @@ importer="scene"
 importer_version=1
 type="PackedScene"
 uid="uid://dwp5o3ur1v5wv"
-path="res://.godot/imported/Donyatsu.fbx-c9c56b11f6b0ed932c7d338294cab12a.scn"
+path="res://.godot/imported/Donyatsu.fbx-a7d35f620ae99c05b207f916372db107.scn"
 
 [deps]
 
-source_file="res://Assets/Donyatsu/Donyatsu.fbx"
-dest_files=["res://.godot/imported/Donyatsu.fbx-c9c56b11f6b0ed932c7d338294cab12a.scn"]
+source_file="res://assets/Donyatsu/Donyatsu.fbx"
+dest_files=["res://.godot/imported/Donyatsu.fbx-a7d35f620ae99c05b207f916372db107.scn"]
 
 [params]
 
 nodes/root_type=""
 nodes/root_name=""
+nodes/root_script=null
 nodes/apply_root_scale=true
 nodes/root_scale=1.0
 nodes/import_as_skeleton_bones=true
@@ -41,19 +42,26 @@ _subresources={
 "materials": {
 "GatomMat1": {
 "use_external/enabled": true,
-"use_external/path": "res://Assets/Donyatsu/Materials/GatomMat1.material"
+"use_external/fallback_path": "res://Assets/Donyatsu/Materials/GatomMat1.material",
+"use_external/path": "uid://cu1vsc0nini2f"
 }
 },
 "meshes": {
 "Cubo": {
+"generate/lightmap_uv": 0,
+"generate/lods": 0,
+"generate/shadow_meshes": 0,
+"lods/normal_merge_angle": 20.0,
 "save_to_file/enabled": true,
+"save_to_file/fallback_path": "res://Assets/Donyatsu/extracted/Donyatsu.Cubo.mesh",
 "save_to_file/make_streamable": "",
-"save_to_file/path": "res://Assets/Donyatsu/extracted/Donyatsu.Cubo.mesh"
+"save_to_file/path": "uid://d33t1oeff0eho"
 },
 "Root Scene_Cubo": {
 "save_to_file/enabled": true,
+"save_to_file/fallback_path": "res://Assets/Donyatsu/extracted/Donyatsu.Cubo.mesh",
 "save_to_file/make_streamable": "",
-"save_to_file/path": "res://Assets/Donyatsu/extracted/Donyatsu.Cubo.mesh"
+"save_to_file/path": "uid://d33t1oeff0eho"
 }
 },
 "nodes": {
