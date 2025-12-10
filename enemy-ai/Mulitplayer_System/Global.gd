@@ -114,15 +114,11 @@ func connect_socket(steam_id: int):
 func _switch_to_lobby_menu():
 	get_tree().change_scene_to_file(LOBBY_MENU_SCENE)
 
-# Make sure this has @rpc!
 @rpc("call_local", "reliable")
 func start_game():
-	# Load the actual level
 	var scene = load(GAME_SCENE).instantiate()
-	
-	# Switch the scene on the current device
 	get_tree().root.add_child(scene)
-	get_tree().current_scene.queue_free() # Delete the Lobby
+	get_tree().current_scene.queue_free()
 	get_tree().current_scene = scene
 
 # ==============================================================================
