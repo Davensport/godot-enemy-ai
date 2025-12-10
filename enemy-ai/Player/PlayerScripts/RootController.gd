@@ -30,7 +30,7 @@ func _ready():
 		# --- HUD SPAWNING (MOVED HERE) ---
 		if hud_scene:
 			var hud = hud_scene.instantiate()
-			get_tree().root.add_child(hud) # Add to the screen, not the player node
+			add_child(hud)
 			
 			# Wire it up if it has the setup function
 			if hud.has_method("setup_ui"):
@@ -80,9 +80,20 @@ func take_damage(amount):
 
 func _on_death_logic():
 	on_player_died.emit()
+	
+	# Stop moving/physics
 	set_physics_process(false)
+	
+	# Play death animation
 	AnimTree["parameters/LifeState/transition_request"] = "dead"
 	AnimPlayer.stop()
-	# SignalBus.player_died.emit() # Make sure you have this bus or remove this line
-	await get_tree().create_timer(2.0).timeout
-	queue_free()
+	
+	# --- FIX 1: UNCOMMENT THIS LINE ---
+	# This sends the signal to the HUD so the button appears!
+	SignalBus.player_died.emit() 
+	
+	# --- FIX 2: REMOVE THE TIMER AND QUEUE_FREE ---
+	# We deleted the timer here.
+	# Why? Because the HUD is now attached to the Player.
+	# If we delete the Player automatically, the Death Screen deletes too!
+	# We will let the "Respawn" button handle the cleanup.

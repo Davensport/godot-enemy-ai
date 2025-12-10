@@ -70,14 +70,20 @@ func update_kills(_enemy_node):
 # --- DEATH LOGIC ---
 
 func _on_player_died():
-	# Unlock mouse
+	# 1. Unlock mouse so you can click
 	Input.set_mouse_mode(Input.MOUSE_MODE_VISIBLE)
 	
-	# Ensure overlay is active
+	# 2. Force the overlay and button to be visible
 	death_overlay.visible = true
+	respawn_btn.visible = true # <--- ADD THIS LINE
+	respawn_btn.disabled = false # <--- ADD THIS LINE
 	
-	# Play animation: Fade Alpha 0 -> 1, Hide GameplayContainer
-	anim_player.play("fade_to_death")
+	# 3. Try to play the animation (if it exists)
+	if anim_player.has_animation("fade_to_death"):
+		anim_player.play("fade_to_death")
+	else:
+		# Fallback if animation is missing: make it black instantly
+		death_overlay.modulate.a = 1.0
 
 func _on_respawn_pressed():
 	# Prevent double clicks
