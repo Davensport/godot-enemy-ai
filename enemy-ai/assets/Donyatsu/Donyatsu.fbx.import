@@ -42,7 +42,7 @@ _subresources={
 "materials": {
 "GatomMat1": {
 "use_external/enabled": true,
-"use_external/fallback_path": "res://Assets/Donyatsu/Materials/GatomMat1.material",
+"use_external/fallback_path": "res://assets/Donyatsu/Materials/GatomMat1.material",
 "use_external/path": "uid://cu1vsc0nini2f"
 }
 },
@@ -53,13 +53,13 @@ _subresources={
 "generate/shadow_meshes": 0,
 "lods/normal_merge_angle": 20.0,
 "save_to_file/enabled": true,
-"save_to_file/fallback_path": "res://Assets/Donyatsu/extracted/Donyatsu.Cubo.mesh",
+"save_to_file/fallback_path": "res://assets/Donyatsu/extracted/Donyatsu.Cubo.mesh",
 "save_to_file/make_streamable": "",
 "save_to_file/path": "uid://d33t1oeff0eho"
 },
 "Root Scene_Cubo": {
 "save_to_file/enabled": true,
-"save_to_file/fallback_path": "res://Assets/Donyatsu/extracted/Donyatsu.Cubo.mesh",
+"save_to_file/fallback_path": "res://assets/Donyatsu/extracted/Donyatsu.Cubo.mesh",
 "save_to_file/make_streamable": "",
 "save_to_file/path": "uid://d33t1oeff0eho"
 }

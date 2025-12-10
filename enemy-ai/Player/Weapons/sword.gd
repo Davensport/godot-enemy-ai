@@ -30,6 +30,5 @@ func _on_body_entered(body):
 	
 	# 2. Add them to the "Already Hit" list
 	hit_objects.append(body)
-
 	if body.has_method("take_damage"):
 		body.take_damage(damage)

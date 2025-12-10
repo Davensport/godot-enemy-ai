@@ -12,6 +12,8 @@ class_name EnemyStats
 @export var attack_damage: float = 10.0
 @export var attack_range: float = 2.0
 @export var attack_rate: float = 1.5 # Seconds between attacks
+@export var aggro_range: float = 12.0
+@export var deaggro_range: float = 16.0
 
 @export_group("Visuals")
 @export var enemy_name: String = "Enemy"
@@ -26,7 +28,7 @@ class_name EnemyStats
 # The fireball/magic bolt object to spawn
 @export var projectile_scene: PackedScene 
 @export var projectile_speed: float = 10.0
-@export var cast_color: Color = Color.PURPLE # Optional: for particle effects
+#@export var cast_color: Color = Color.PURPLE # Optional: for particle effects
 
 
 @export_group("Movement Settings")

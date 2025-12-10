@@ -19,17 +19,18 @@ extends CharacterBody3D
 @onready var health_bar = $EnemyHealthbar3D
 
 # --- 4. STATE MACHINE ---
-# This is the new "Brain" of the enemy
 @onready var state_machine = $StateMachine
 
 # --- 5. ANIMATION SYSTEM ---
 var _animation_players: Array[AnimationPlayer] = []
 
-# --- 6. SHARED STATE DATA (Accessed by Child States) ---
-# These variables are public so states (Chase, Attack) can read/write them.
+# --- 6. SHARED STATE DATA ---
 var player_target: Node3D
-var flight_offset_time: float = 0.0 # Used by Chase/Fly states for bobbing
+var flight_offset_time: float = 0.0 
 var gravity = ProjectSettings.get_setting("physics/3d/default_gravity")
+
+# NEW: Prevents enemies from wandering off the map
+var home_position: Vector3 
 
 # --- SETUP ---
 func _ready():
@@ -37,51 +38,43 @@ func _ready():
 		push_error("CRITICAL: No EnemyStats resource assigned to " + name)
 		return
 
+	# Capture Spawn Point
+	home_position = global_position 
+
 	initialize_from_stats()
 	_connect_signals()
 	
-	# Initialize Flight Offset randomly so enemies don't bob in perfect sync
 	if stats.is_flying:
 		flight_offset_time = randf() * 10.0
 	
-	# Initial Search
 	await get_tree().physics_frame
 	find_player()
 
-# --- PHYSICS LOOP ---
 func _physics_process(delta):
-	# The State Machine handles specific logic (Chasing, Attacking, Idling).
-	# The Main Script handles GLOBAL physics rules (Gravity).
-	
-	# Check if dead so we don't apply gravity to a corpse (unless desired)
 	var is_dead = state_machine.current_state and state_machine.current_state.name.to_lower() == "death"
 	
 	if not stats.is_flying and not is_on_floor() and not is_dead:
 		velocity.y -= gravity * delta
 
-	# We do NOT calculate velocity here. The active State does that.
-	# We just apply the final result.
 	move_and_slide()
 
-# --- INITIALIZATION HELPER ---
 func initialize_from_stats():
-	# Movement Mode
 	if stats.is_flying:
 		motion_mode = CharacterBody3D.MOTION_MODE_FLOATING
 		axis_lock_linear_y = false 
 	else:
 		motion_mode = CharacterBody3D.MOTION_MODE_GROUNDED
 
-	# Initialize Components
 	if health_component: health_component.initialize(stats.max_health)
-	if movement_component: movement_component.initialize(stats.move_speed, stats.acceleration)
+	
+	# FIX: Pass the entire stats resource
+	if movement_component: movement_component.initialize(stats)
 	
 	if combat_component:
 		var proj_scene = stats.projectile_scene if "projectile_scene" in stats else null
 		var proj_speed = stats.projectile_speed if "projectile_speed" in stats else 0.0
 		combat_component.initialize(stats.attack_damage, stats.attack_range, stats.attack_rate, proj_scene, proj_speed)
 		
-	# Visuals Setup
 	if stats.model_scene and visuals_container:
 		for child in visuals_container.get_children():
 			child.queue_free()
@@ -102,7 +95,6 @@ func initialize_from_stats():
 	if health_component:
 		_update_ui(health_component.current_health, health_component.max_health)
 
-# --- SIGNAL CONNECTIONS ---
 func _connect_signals():
 	if health_component:
 		health_component.on_death.connect(_on_death_event)
@@ -115,22 +107,21 @@ func _connect_signals():
 	SignalBus.player_spawned.connect(_on_player_spawned)
 	SignalBus.player_died.connect(_on_player_died)
 
-# --- PUBLIC HELPER FUNCTIONS (Called by States) ---
-# These act as a utility library for your states so you don't rewrite code.
-
+# --- PUBLIC HELPER FUNCTIONS ---
 func play_animation(anim_name: String):
 	if _animation_players.is_empty() or anim_name == "":
 		return
 	for anim_player in _animation_players:
 		if anim_player.has_animation(anim_name):
-			# Do not restart the same animation if it is already looping
+			print(anim_player.name, anim_name)
 			if anim_player.current_animation == anim_name and anim_player.is_playing():
+				print('do return tho')
 				return 
 			anim_player.play(anim_name, 0.2) 
+			print('playssss')
 			return
 
 func rotate_smoothly(target_direction: Vector3, delta: float):
-	# Flatten direction (we only rotate on Y axis)
 	var horizontal_dir = Vector3(target_direction.x, 0, target_direction.z)
 	if horizontal_dir.length_squared() < 0.001: return
 	
@@ -152,7 +143,6 @@ func find_player():
 		if combat_component: combat_component.set_target(player_target)
 
 # --- INTERNAL HELPERS ---
-
 func _find_all_animation_players(node: Node):
 	if node is AnimationPlayer:
 		_animation_players.append(node)
@@ -172,21 +162,22 @@ func _on_attack_visuals():
 	if stats:
 		SignalBus.enemy_attack_occurred.emit(self, stats.attack_damage)
 
-# --- EVENT HANDLERS (State Interrupts) ---
-
+# --- EVENT HANDLERS ---
 func _on_damage_event(_amount):
+	print('should be hit..')
 	_update_ui(health_component.current_health, health_component.max_health)
 	
-	# If we are already dead, do nothing
 	if state_machine.current_state and state_machine.current_state.name.to_lower() == "death":
 		return
 		
-	# Optional: Force a "Hit" state if desired
 	state_machine.force_change_state("hit")
 
+func take_damage(amount: float):
+	# this just connects the components together
+	if health_component:
+		health_component.take_damage(amount)
+
 func _on_death_event():
-	# Force the state machine into the Death state
-	# This overrides whatever the enemy was doing (Chasing/Attacking)
 	state_machine.force_change_state("death")
 	SignalBus.enemy_died.emit(self)
 
@@ -195,5 +186,4 @@ func _on_player_spawned():
 
 func _on_player_died():
 	player_target = null
-	# Force back to Idle
 	state_machine.force_change_state("idle")

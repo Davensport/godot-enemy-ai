@@ -3,16 +3,19 @@ extends EnemyState
 
 var strafe_dir: int = 1
 var attack_timer: float = 0.0
+var is_attacking: bool = false 
 
 func enter():
-	# Fix 1: Randomize direction to prevent predictable movement
 	strafe_dir = 1 if randf() > 0.5 else -1
 	attack_timer = 0.0 
 
 func physics_update(delta):
-	# Fix 2: SAFETY CHECK - If player is gone, stop EVERYTHING and return immediately
+	# 1. SAFETY CHECK
 	if not is_instance_valid(enemy.player_target):
 		transition_requested.emit(self, "idle")
+		return
+
+	if is_attacking:
 		return
 
 	# Update Timer
@@ -22,15 +25,13 @@ func physics_update(delta):
 	else:
 		_attack_behavior(delta)
 	
-	# Fix 3: Double-check safety before calculating distance at the end
+	# Distance Check (Only runs if NOT attacking)
 	if is_instance_valid(enemy.player_target):
 		var distance = enemy.global_position.distance_to(enemy.player_target.global_position)
-		# Hysteresis: Only go back to chase if player moves significantly out of range
 		if distance > stats.attack_range + 1.0: 
 			transition_requested.emit(self, "chase")
 
 func _strafe_behavior(delta):
-	# Safe access because we checked validity in physics_update
 	var dir_to_player = (enemy.player_target.global_position - enemy.global_position).normalized()
 	var right_vec = dir_to_player.cross(Vector3.UP).normalized()
 	var strafe_vel = right_vec * strafe_dir * (stats.move_speed * 0.25)
@@ -44,11 +45,21 @@ func _strafe_behavior(delta):
 		strafe_dir *= -1
 
 func _attack_behavior(_delta):
-	# Fix 5: HARD STOP. Prevent sliding while shooting.
+	# Stop moving completely
 	enemy.velocity = Vector3.ZERO 
+	
+	# Lock the state
+	is_attacking = true
 	
 	enemy.play_animation(stats.anim_attack)
 	enemy.combat_component.try_attack()
 	
 	attack_timer = stats.attack_rate
 	strafe_dir *= -1
+	
+	# Wait for the animation to finish (roughly)
+	# You can tune this number (e.g. 0.5, 0.8) to match your animation length
+	await get_tree().create_timer(0.6).timeout
+	
+	# Unlock
+	is_attacking = false

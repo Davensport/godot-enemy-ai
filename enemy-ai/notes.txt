@@ -2,7 +2,9 @@
 @@ todo - not get to focused, this is supposed to be general purpose for reuse.@@
 
 - ENEMY AI: right now they just follow, super basic. 
-	[ ] Add enemy state 'wander' or something, when theyre not in combat or running at player. to look more natural and stuff.
+	[x] Add enemy state 'wander' or something, when theyre not in combat or running at player. to look more natural and stuff.
+- Make enemies not 'wander' into a wall forever, or fly off into the ether.
+	[ ]
 	[ ] done
 
 - Add 'Game Juice' aka 'Game Feel' (probably another github repo)

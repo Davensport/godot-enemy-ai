@@ -1,4 +1,4 @@
-[gd_scene load_steps=13 format=3 uid="uid://cixgq6lfcf62l"]
+[gd_scene load_steps=14 format=3 uid="uid://cixgq6lfcf62l"]
 
 [ext_resource type="Script" uid="uid://bx4iqwtx80nnt" path="res://Enemies/DummyEnemy/DummyEnemy.gd" id="1_wiado"]
 [ext_resource type="Script" uid="uid://d0170xy477263" path="res://Shared/Scripts/HealthComponent.gd" id="2_gociu"]
@@ -11,6 +11,7 @@
 [ext_resource type="Script" uid="uid://h3ksuyk355h3" path="res://Enemies/States/EnemyAttack.gd" id="9_161yo"]
 [ext_resource type="Script" uid="uid://bv50gb75vjlid" path="res://Enemies/States/EnemyDeath.gd" id="10_8xkya"]
 [ext_resource type="Script" uid="uid://ce7nw8xd2xfio" path="res://Enemies/States/EnemyHit.gd" id="11_yrh3s"]
+[ext_resource type="Script" uid="uid://bq23aja4h501v" path="res://Enemies/States/EnemyWander.gd" id="12_wq81r"]
 
 [sub_resource type="ViewportTexture" id="ViewportTexture_y7v25"]
 viewport_path = NodePath("SubViewport")
@@ -61,3 +62,6 @@ script = ExtResource("10_8xkya")
 
 [node name="Hit" type="Node" parent="StateMachine"]
 script = ExtResource("11_yrh3s")
+
+[node name="Wander" type="Node" parent="StateMachine"]
+script = ExtResource("12_wq81r")

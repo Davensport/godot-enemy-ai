@@ -15,6 +15,7 @@ extends CanvasLayer
 @onready var anim_player = $AnimationPlayer
 
 func _ready():
+	
 	# 1. Connect the respawn button locally
 	respawn_btn.pressed.connect(_on_respawn_pressed)
 	
@@ -85,5 +86,3 @@ func _on_respawn_pressed():
 	# Emit signal. The PlayerSpawner is listening for this!
 	SignalBus.respawn_requested.emit()
 	
-	# We do NOT queue_free() here. 
-	# The Spawner will delete us when it receives the signal.

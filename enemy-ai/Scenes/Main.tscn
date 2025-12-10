@@ -1,8 +1,9 @@
-[gd_scene load_steps=17 format=3 uid="uid://disnqn4r1gsq"]
+[gd_scene load_steps=18 format=3 uid="uid://disnqn4r1gsq"]
 
 [ext_resource type="PackedScene" uid="uid://dg1cnchkr2ne1" path="res://Enemies/Spawner/EnemySpawner.tscn" id="1_v1gob"]
 [ext_resource type="PackedScene" uid="uid://qvf1fwy1u8vr" path="res://Scenes/sample_arena.tscn" id="3_kln2b"]
 [ext_resource type="Script" uid="uid://mfp023ur7mgf" path="res://Enemies/other_freaking_enemy_stuff_that_idk_where_to_put/SpawnDefinition.gd" id="3_v1gob"]
+[ext_resource type="PackedScene" uid="uid://can6v4kxdrge2" path="res://Enemies/Real_Enemies/SkeleMage.tscn" id="4_vy5pj"]
 [ext_resource type="PackedScene" uid="uid://bfo2it1jmjbyh" path="res://Enemies/Real_Enemies/SkeleRouge.tscn" id="5_v1gob"]
 [ext_resource type="PackedScene" uid="uid://drepnuqy42gmy" path="res://Enemies/Real_Enemies/SkeleWarrior.tscn" id="6_jw32o"]
 [ext_resource type="PackedScene" uid="uid://fl35pvoq34i8" path="res://Player/Spawner/player_spawner.tscn" id="6_v1gob"]
@@ -24,14 +25,14 @@ glow_enabled = true
 
 [sub_resource type="Resource" id="Resource_50glp"]
 script = ExtResource("3_v1gob")
-enemy_scene = ExtResource("8_vy5pj")
+enemy_scene = ExtResource("4_vy5pj")
 spawn_weight = 5
 metadata/_custom_type_script = "uid://mfp023ur7mgf"
 
 [sub_resource type="Resource" id="Resource_jw32o"]
 script = ExtResource("3_v1gob")
 enemy_scene = ExtResource("5_v1gob")
-spawn_weight = 5
+spawn_weight = 100
 metadata/_custom_type_script = "uid://mfp023ur7mgf"
 
 [sub_resource type="Resource" id="Resource_vy5pj"]
@@ -49,7 +50,7 @@ metadata/_custom_type_script = "uid://mfp023ur7mgf"
 [sub_resource type="Resource" id="Resource_4kpch"]
 script = ExtResource("3_v1gob")
 enemy_scene = ExtResource("8_vy5pj")
-spawn_weight = 4
+spawn_weight = 5
 metadata/_custom_type_script = "uid://mfp023ur7mgf"
 
 [node name="Main" type="Node3D"]
@@ -72,5 +73,6 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.8135037, 5.2934937, 5.52404
 [node name="EnemySpawner" parent="Arenas/Arena_One" instance=ExtResource("1_v1gob")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.1235206, 0)
 spawn_list = Array[ExtResource("3_v1gob")]([SubResource("Resource_50glp"), SubResource("Resource_jw32o"), SubResource("Resource_vy5pj"), SubResource("Resource_bmxlf"), SubResource("Resource_4kpch")])
+max_active_enemies = 1
 
 [node name="SampleArena" parent="Arenas/Arena_One" instance=ExtResource("3_kln2b")]

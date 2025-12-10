@@ -31,6 +31,7 @@ enabled=PackedStringArray("res://addons/quick_notes_dock/plugin.cfg", "res://add
 
 folder_colors={
 "res://Enemies/": "red",
+"res://Enemies/States/": "orange",
 "res://assets/256x256/": "blue",
 "res://assets/Attributions_Licenses/": "gray",
 "res://assets/Donyatsu/": "red",

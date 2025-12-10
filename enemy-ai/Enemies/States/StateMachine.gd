@@ -25,6 +25,7 @@ func _ready():
 func _physics_process(delta):
 	if current_state:
 		current_state.physics_update(delta)
+	#print(current_state)
 
 func _on_transition_requested(from: EnemyState, to_state_name: String):
 	if from != current_state:
