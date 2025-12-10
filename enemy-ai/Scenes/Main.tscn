@@ -73,6 +73,5 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.8135037, 5.2934937, 5.52404
 [node name="EnemySpawner" parent="Arenas/Arena_One" instance=ExtResource("1_v1gob")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.1235206, 0)
 spawn_list = Array[ExtResource("3_v1gob")]([SubResource("Resource_50glp"), SubResource("Resource_jw32o"), SubResource("Resource_vy5pj"), SubResource("Resource_bmxlf"), SubResource("Resource_4kpch")])
-max_active_enemies = 1
 
 [node name="SampleArena" parent="Arenas/Arena_One" instance=ExtResource("3_kln2b")]
