@@ -107,19 +107,27 @@ func _connect_signals():
 	SignalBus.player_spawned.connect(_on_player_spawned)
 	SignalBus.player_died.connect(_on_player_died)
 
-# --- PUBLIC HELPER FUNCTIONS ---
+## --- PUBLIC HELPER FUNCTIONS ---
+#func play_animation(anim_name: String):
+	#if _animation_players.is_empty() or anim_name == "":
+		#return
+	#for anim_player in _animation_players:
+		#if anim_player.has_animation(anim_name):
+			#if anim_player.current_animation == anim_name and anim_player.is_playing():
+				#return 
+			#anim_player.play(anim_name, 0.2) 
+			#return
 func play_animation(anim_name: String):
 	if _animation_players.is_empty() or anim_name == "":
 		return
+
 	for anim_player in _animation_players:
 		if anim_player.has_animation(anim_name):
-			print(anim_player.name, anim_name)
 			if anim_player.current_animation == anim_name and anim_player.is_playing():
-				print('do return tho')
-				return 
-			anim_player.play(anim_name, 0.2) 
-			print('playssss')
-			return
+				continue 
+			anim_player.play(anim_name, 0.2)
+		else:
+			anim_player.stop()
 
 func rotate_smoothly(target_direction: Vector3, delta: float):
 	var horizontal_dir = Vector3(target_direction.x, 0, target_direction.z)
@@ -164,7 +172,6 @@ func _on_attack_visuals():
 
 # --- EVENT HANDLERS ---
 func _on_damage_event(_amount):
-	print('should be hit..')
 	_update_ui(health_component.current_health, health_component.max_health)
 	
 	if state_machine.current_state and state_machine.current_state.name.to_lower() == "death":
