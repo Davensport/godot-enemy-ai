@@ -11,13 +11,14 @@ config_version=5
 [application]
 
 config/name="enemy-ai"
-run/main_scene="uid://disnqn4r1gsq"
+run/main_scene="uid://c3bca8ijdhnml"
 config/features=PackedStringArray("4.5", "Forward Plus")
 config/icon="res://icon.svg"
 
 [autoload]
 
 SignalBus="*res://AutoloadScripts/SignalBus.gd"
+Global="*res://Mulitplayer_System/Global.gd"
 
 [debug]
 
@@ -99,3 +100,14 @@ crouch={
 3d_physics/layer_1="World"
 3d_physics/layer_2="Player"
 3d_physics/layer_3="Enemies"
+
+[rendering]
+
+renderer/rendering_method="gl_compatibility"
+renderer/rendering_method.mobile="gl_compatibility"
+
+[steam]
+
+initialization/app_id=0
+initialization/initialize_on_startup=false
+initialization/embed_callbacks=false

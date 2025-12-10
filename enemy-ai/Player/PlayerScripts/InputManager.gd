@@ -13,9 +13,14 @@ signal on_crouch_release
 
 # --- STATE ---
 var input_dir: Vector2 = Vector2.ZERO
-var is_crouch_held: bool = false # Public variable other scripts can check
+var is_crouch_held: bool = false 
 
 func _process(_delta):
+	# [MULTIPLAYER] GUARD RAIL
+	# If I do not own this character, I cannot press buttons for it.
+	if not is_multiplayer_authority():
+		return
+
 	# 1. Movement Input
 	input_dir = Input.get_vector("move_left", "move_right", "move_forward", "move_backward")
 	

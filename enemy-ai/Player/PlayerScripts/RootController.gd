@@ -1,6 +1,10 @@
 class_name PlayerController
 extends CharacterBody3D
 
+# --- NEW: HUD VARIABLE ---
+# Drag his "HUD.tscn" here in the inspector later!
+@export var hud_scene: PackedScene
+
 signal on_player_died
 
 @onready var movement = $Components/Movement
@@ -10,59 +14,75 @@ signal on_player_died
 @onready var AnimPlayer = $AnimationPlayer
 @onready var AnimTree = $AnimationTree
 
-# --- NEW VARS FOR FLYING ---
 var is_flying: bool = false
 var _saved_collision_mask: int = 1
 
+# [MULTIPLAYER] 1. Set Authority when spawned
+func _enter_tree():
+	set_multiplayer_authority(str(name).to_int())
+
 func _ready():
-	Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
+	# [MULTIPLAYER] Only setup for the Local Player
+	if is_multiplayer_authority():
+		Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
+		camera_rig.current = true
+		
+		# --- HUD SPAWNING (MOVED HERE) ---
+		if hud_scene:
+			var hud = hud_scene.instantiate()
+			get_tree().root.add_child(hud) # Add to the screen, not the player node
+			
+			# Wire it up if it has the setup function
+			if hud.has_method("setup_ui"):
+				hud.setup_ui(self)
+	else:
+		# If it's NOT me, disable camera and physics
+		camera_rig.current = false
+		set_physics_process(false)
+
 	if health:
 		health.on_death.connect(_on_death_logic)
 
-# --- NEW INPUT FUNCTION FOR TOGGLE ---
 func _input(event):
-	# Toggle with 'P' key
+	# [MULTIPLAYER] Guard rail for flying cheat
+	if not is_multiplayer_authority(): return
+
 	if event is InputEventKey and event.pressed and event.keycode == KEY_P:
 		is_flying = !is_flying
 		if is_flying:
-			# Enable Flight: Floating physics, No Collision
 			motion_mode = CharacterBody3D.MOTION_MODE_FLOATING
 			_saved_collision_mask = collision_mask
 			collision_mask = 0 
 		else:
-			# Disable Flight: Restore Gravity and Collision
 			motion_mode = CharacterBody3D.MOTION_MODE_GROUNDED
 			collision_mask = _saved_collision_mask
 
 func _physics_process(delta):
-	# --- MODIFIED LOGIC START ---
+	# Note: This function only runs if is_multiplayer_authority() is true
+	# because we disabled it in _ready() for others.
+	
 	if is_flying:
-		# 1. Fly Logic (Direct Input)
 		var dir = Input.get_vector("move_left", "move_right", "move_forward", "move_backward")
 		var cam_basis = camera_rig.global_basis
-		
-		# Move where camera looks
-		var target_vel = (cam_basis * Vector3(dir.x, 0, dir.y)).normalized() * 20.0 # 20 is fly speed
-		
-		# Vertical Movement (Space/Ctrl)
+		var target_vel = (cam_basis * Vector3(dir.x, 0, dir.y)).normalized() * 20.0
 		if Input.is_action_pressed("jump"): target_vel += Vector3.UP * 10.0
-		if Input.is_action_pressed("crouch"): target_vel += Vector3.DOWN * 10.0 # Ensure 'crouch' is mapped or use KEY_CTRL
-		
+		if Input.is_action_pressed("crouch"): target_vel += Vector3.DOWN * 10.0
 		velocity = velocity.lerp(target_vel, 10.0 * delta)
 	else:
-		# 2. Normal Logic (Delegate to Component)
 		movement.handle_movement(delta)
 	
 	move_and_slide()
 
 func take_damage(amount):
-	health.take_damage(amount)
+	# [MULTIPLAYER] Only the server deals damage
+	if multiplayer.is_server():
+		health.take_damage(amount)
 
 func _on_death_logic():
 	on_player_died.emit()
 	set_physics_process(false)
 	AnimTree["parameters/LifeState/transition_request"] = "dead"
 	AnimPlayer.stop()
-	SignalBus.player_died.emit()
+	# SignalBus.player_died.emit() # Make sure you have this bus or remove this line
 	await get_tree().create_timer(2.0).timeout
 	queue_free()

@@ -1,0 +1,69 @@
+[gd_scene load_steps=4 format=3 uid="uid://db1e1ge2nnfpn"]
+
+[ext_resource type="Script" uid="uid://bh2nr45xdnj0u" path="res://Mulitplayer_System/lobby_character.gd" id="1_034lb"]
+[ext_resource type="PackedScene" uid="uid://b4xnn2th16bl3" path="res://assets/PlayerCharacter/Character Animated.glb" id="1_sbbl8"]
+
+[sub_resource type="SceneReplicationConfig" id="SceneReplicationConfig_1ooqh"]
+properties/0/path = NodePath(".:player_name")
+properties/0/spawn = true
+properties/0/replication_mode = 1
+properties/1/path = NodePath(".:player_color")
+properties/1/spawn = true
+properties/1/replication_mode = 1
+properties/2/path = NodePath(".:position")
+properties/2/spawn = true
+properties/2/replication_mode = 1
+properties/3/path = NodePath(".:rotation")
+properties/3/spawn = true
+properties/3/replication_mode = 1
+
+[node name="LobbyCharacter" type="Node3D"]
+transform = Transform3D(-1, 0, 8.742278e-08, 0, 1, 0, -8.742278e-08, 0, -1, 0, 0, 0)
+script = ExtResource("1_034lb")
+
+[node name="Mesh" type="Node3D" parent="."]
+transform = Transform3D(-1, 0, -8.742278e-08, 0, 1, 0, 8.742278e-08, 0, -1, 0, 0, 0)
+
+[node name="Root Scene" parent="Mesh" instance=ExtResource("1_sbbl8")]
+
+[node name="Foot_L" parent="Mesh/Root Scene/RootNode/CharacterArmature/Skeleton3D" index="0"]
+transform = Transform3D(-1, 3.3899033e-07, 1.8276034e-05, -5.531034e-07, -0.9999313, -0.0117167225, 1.8270806e-05, -0.011716842, 0.9999313, 0.0012009374, 0.00031167452, 0.00015350766)
+
+[node name="Head" parent="Mesh/Root Scene/RootNode/CharacterArmature/Skeleton3D" index="1"]
+transform = Transform3D(0.99999976, -3.4461323e-13, -0.00055020297, -0.000548861, -0.06980166, -0.9975609, -3.8405073e-05, 0.99756086, -0.06980164, -4.404801e-06, -0.0005080481, 0.013932708)
+
+[node name="Fist2_L" parent="Mesh/Root Scene/RootNode/CharacterArmature/Skeleton3D" index="2"]
+transform = Transform3D(0.092559256, -0.41986334, 0.9028554, -0.92022705, -0.3823777, -0.08348105, 0.38028204, -0.8231047, -0.4217623, 0.0021383504, -0.0016536191, 0.0056228414)
+
+[node name="Thumb2_L" parent="Mesh/Root Scene/RootNode/CharacterArmature/Skeleton3D" index="3"]
+transform = Transform3D(0.4758607, -0.56134635, 0.67708755, -0.6629391, -0.7348306, -0.14330253, 0.57798636, -0.38067538, -0.72181535, 0.0020135862, -0.0016881005, 0.0069450336)
+
+[node name="Fist2_R" parent="Mesh/Root Scene/RootNode/CharacterArmature/Skeleton3D" index="4"]
+transform = Transform3D(-0.002166298, 0.35943872, -0.9331664, 0.93039095, -0.34134078, -0.1336383, -0.3665623, -0.868499, -0.333679, -0.0027033407, -0.001571632, 0.005660224)
+
+[node name="Thumb2_R" parent="Mesh/Root Scene/RootNode/CharacterArmature/Skeleton3D" index="5"]
+transform = Transform3D(0.3748891, 0.5652493, -0.7348138, 0.70123905, -0.6913525, -0.17405753, -0.606401, -0.45002764, -0.6555551, -0.0024470077, -0.0016199233, 0.00696288)
+
+[node name="LowerLeg_L" parent="Mesh/Root Scene/RootNode/CharacterArmature/Skeleton3D" index="6"]
+transform = Transform3D(0.999506, -0.006519147, -0.030739717, 0.031359114, 0.26952827, 0.9624776, 0.0020106852, -0.9629697, 0.2696035, 0.0012287088, -0.0008265871, 0.0040482264)
+
+[node name="LowerLeg_R" parent="Mesh/Root Scene/RootNode/CharacterArmature/Skeleton3D" index="7"]
+transform = Transform3D(0.9992616, 0.0082258815, 0.037520442, -0.038349025, 0.26941413, 0.9622572, -0.002193123, -0.9629888, 0.269534, -0.0012359576, -0.00082610775, 0.0040483056)
+
+[node name="PoleTarget_L" parent="Mesh/Root Scene/RootNode/CharacterArmature/Skeleton3D" index="8"]
+transform = Transform3D(1, -7.1054274e-14, 7.152558e-07, 7.1525574e-07, 3.5762787e-07, -1, -1.8474117e-13, 1, 3.5762787e-07, 0.0014012029, -0.00664492, 0.004982611)
+
+[node name="Foot_R" parent="Mesh/Root Scene/RootNode/CharacterArmature/Skeleton3D" index="9"]
+transform = Transform3D(-1, -2.1777595e-07, -1.8274613e-05, 4.318798e-07, -0.9999313, -0.0117167225, -1.8270808e-05, -0.011716842, 0.9999313, -0.0012009371, 0.00031167452, 0.00015350766)
+
+[node name="PoleTarget_R" parent="Mesh/Root Scene/RootNode/CharacterArmature/Skeleton3D" index="10"]
+transform = Transform3D(1, -7.105428e-14, -7.1525596e-07, -7.152558e-07, 3.5762787e-07, -1, 3.2684963e-13, 1, 3.5762787e-07, -0.0014490514, -0.006644919, 0.004982611)
+
+[node name="Label3D" type="Label3D" parent="."]
+transform = Transform3D(-1, 0, 8.742278e-08, 0, 1, 0, -8.742278e-08, 0, -1, 0, 2.4, 0)
+text = "Username"
+
+[node name="MultiplayerSynchronizer" type="MultiplayerSynchronizer" parent="."]
+replication_config = SubResource("SceneReplicationConfig_1ooqh")
+
+[editable path="Mesh/Root Scene"]

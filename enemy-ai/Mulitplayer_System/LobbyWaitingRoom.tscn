@@ -1,0 +1,124 @@
+[gd_scene load_steps=5 format=3 uid="uid://bbwdmoivbt1hj"]
+
+[ext_resource type="Script" uid="uid://281i8ssm8ifj" path="res://Mulitplayer_System/lobby_waiting_room.gd" id="1_rfwfh"]
+
+[sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_sdebt"]
+sky_top_color = Color(0, 0.57916117, 0.933266, 1)
+sky_horizon_color = Color(0.9770903, 1.1050477, 1.1747382, 1)
+ground_bottom_color = Color(0.57651293, 0.5091816, 0.43383878, 1)
+ground_horizon_color = Color(0.9770903, 1.1050477, 1.1747382, 1)
+
+[sub_resource type="Sky" id="Sky_rr7fh"]
+sky_material = SubResource("ProceduralSkyMaterial_sdebt")
+
+[sub_resource type="Environment" id="Environment_4dxrl"]
+background_mode = 2
+sky = SubResource("Sky_rr7fh")
+tonemap_mode = 2
+glow_enabled = true
+
+[node name="LobbyWaitingRoom" type="Node3D"]
+script = ExtResource("1_rfwfh")
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+environment = SubResource("Environment_4dxrl")
+
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
+transform = Transform3D(-0.8660254, -0.43301278, 0.25, 0, 0.49999997, 0.86602545, -0.50000006, 0.75, -0.43301266, 0, 0, 0)
+shadow_enabled = true
+
+[node name="LobbyCodeLabel" type="Label" parent="."]
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -20.0
+offset_right = 20.0
+offset_bottom = 23.0
+grow_horizontal = 2
+text = "Lobby ID:"
+
+[node name="CopyButton" type="Button" parent="LobbyCodeLabel"]
+layout_mode = 0
+offset_left = -3.5
+offset_top = 44.0
+offset_right = 86.5
+offset_bottom = 75.0
+text = "Copy Code"
+
+[node name="VBoxContainer" type="VBoxContainer" parent="LobbyCodeLabel"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -20.0
+offset_top = 147.5
+offset_right = 20.0
+offset_bottom = 187.5
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="PlayerList" type="VBoxContainer" parent="LobbyCodeLabel/VBoxContainer"]
+layout_mode = 2
+
+[node name="Camera3D" type="Camera3D" parent="."]
+transform = Transform3D(-1, 0, -1.192093e-07, 0, 1, 0, 1.192093e-07, 0, -1, -0.2, 2.4, -3.9999995)
+
+[node name="MultiplayerSpawner" type="MultiplayerSpawner" parent="."]
+_spawnable_scenes = PackedStringArray("uid://db1e1ge2nnfpn")
+spawn_path = NodePath("..")
+
+[node name="Players" type="Node3D" parent="."]
+
+[node name="Podium1" type="Marker3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -3.5000002, 1.7, 0)
+
+[node name="Podium2" type="Marker3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.7000003, 1.7, 0)
+
+[node name="Podium3" type="Marker3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -3.5000002, 0, 0)
+
+[node name="Podium4" type="Marker3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.7000003, 0, 0)
+
+[node name="CanvasLayer" type="CanvasLayer" parent="."]
+
+[node name="UI" type="Control" parent="CanvasLayer"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="ColorPickerBtn" type="ColorPickerButton" parent="CanvasLayer/UI"]
+layout_mode = 0
+offset_left = 530.0
+offset_top = 584.0
+offset_right = 642.0
+offset_bottom = 615.0
+text = "Change Color"
+
+[node name="InviteButton" type="Button" parent="CanvasLayer/UI"]
+layout_mode = 0
+offset_left = 523.0
+offset_top = 476.0
+offset_right = 636.0
+offset_bottom = 507.0
+text = "Invite Friends"
+
+[node name="StartGameButton" type="Button" parent="CanvasLayer/UI"]
+layout_mode = 0
+offset_left = 523.0
+offset_top = 511.0
+offset_right = 636.0
+offset_bottom = 542.0
+text = "Start Game
+"
+
+[connection signal="pressed" from="LobbyCodeLabel/CopyButton" to="." method="_on_copy_button_pressed"]
+[connection signal="color_changed" from="CanvasLayer/UI/ColorPickerBtn" to="." method="_on_color_picker_btn_color_changed"]
+[connection signal="pressed" from="CanvasLayer/UI/InviteButton" to="." method="_on_invite_friends_pressed"]
+[connection signal="pressed" from="CanvasLayer/UI/StartGameButton" to="." method="_on_start_game_pressed"]
