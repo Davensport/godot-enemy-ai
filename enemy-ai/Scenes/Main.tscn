@@ -81,6 +81,7 @@ _spawnable_scenes = PackedStringArray("uid://bmqc1pownjiil")
 spawn_path = NodePath("../Players")
 
 [node name="Players" type="Node3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2.782633, 2.644208, 0)
 
 [node name="SpawnPoint" type="Marker3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 8.638964, 7.7820835, 0)

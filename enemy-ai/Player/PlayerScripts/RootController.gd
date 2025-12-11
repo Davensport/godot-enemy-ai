@@ -1,12 +1,9 @@
 class_name PlayerController
 extends CharacterBody3D
 
-# --- NEW: HUD VARIABLE ---
-# Drag his "HUD.tscn" here in the inspector later!
-@export var hud_scene: PackedScene
-
 signal on_player_died
 
+# --- COMPONENTS ---
 @onready var movement = $Components/Movement
 @onready var combat = $Components/Combat
 @onready var camera_rig = $Head/Camera3D
@@ -14,39 +11,73 @@ signal on_player_died
 @onready var AnimPlayer = $AnimationPlayer
 @onready var AnimTree = $AnimationTree
 
+# --- VISUALS (The Fix) ---
+# We grab the specific mesh node using the path you provided
+@onready var character_mesh = $RootNode/CharacterArmature/Skeleton3D/Rogue
+@onready var hair_mesh = $RootNode/CharacterArmature/Skeleton3D/Head/NurbsPath_001
+
+# --- CONFIG ---
+@export var hud_scene: PackedScene 
+
+# --- STATE ---
 var is_flying: bool = false
 var _saved_collision_mask: int = 1
 
-# [MULTIPLAYER] 1. Set Authority when spawned
+# --- LOBBY COMPATIBILITY ---
+var player_name: String = ""
+var player_color: Color = Color.WHITE
+
+func set_color_on_server(color):
+	player_color = color
+	# Optional: If you want to change the outfit color later, do it here.
+
 func _enter_tree():
 	set_multiplayer_authority(str(name).to_int())
 
 func _ready():
-	# [MULTIPLAYER] Only setup for the Local Player
+	# Wait one frame to ensure Godot has finished network setup
+	await get_tree().process_frame
+	
 	if is_multiplayer_authority():
+		# --- I AM THE PLAYER (LOCAL) ---
 		Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
 		camera_rig.current = true
 		
-		# --- HUD SPAWNING (MOVED HERE) ---
+		# 1. VISUAL FIX: Hide body from my own camera, but KEEP SHADOWS
+		if character_mesh:
+			character_mesh.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_SHADOWS_ONLY
+			
+		# 2. VISUAL FIX: Hide HAIR from camera (New!)
+		if hair_mesh:
+			hair_mesh.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_SHADOWS_ONLY
+		
+		# 2. SPAWN HUD
 		if hud_scene:
 			var hud = hud_scene.instantiate()
 			add_child(hud)
-			
-			# Wire it up if it has the setup function
 			if hud.has_method("setup_ui"):
 				hud.setup_ui(self)
+				
 	else:
-		# If it's NOT me, disable camera and physics
+		# --- I AM A PUPPET (OTHER PLAYER) ---
 		camera_rig.current = false
 		set_physics_process(false)
+		set_process(true) # Keep animating!
+		
+		# Ensure mesh is fully visible for others
+		if character_mesh:
+			character_mesh.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_ON
+		if hair_mesh:
+			hair_mesh.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_ON
 
 	if health:
 		health.on_death.connect(_on_death_logic)
 
 func _input(event):
-	# [MULTIPLAYER] Guard rail for flying cheat
+	# [MULTIPLAYER] Guard rail
 	if not is_multiplayer_authority(): return
 
+	# Fly Mode (Debug/Cheat)
 	if event is InputEventKey and event.pressed and event.keycode == KEY_P:
 		is_flying = !is_flying
 		if is_flying:
@@ -58,9 +89,7 @@ func _input(event):
 			collision_mask = _saved_collision_mask
 
 func _physics_process(delta):
-	# Note: This function only runs if is_multiplayer_authority() is true
-	# because we disabled it in _ready() for others.
-	
+	# Only run physics for the local player
 	if is_flying:
 		var dir = Input.get_vector("move_left", "move_right", "move_forward", "move_backward")
 		var cam_basis = camera_rig.global_basis
@@ -73,27 +102,38 @@ func _physics_process(delta):
 	
 	move_and_slide()
 
+func _process(delta):
+	# Update animations for other players
+	if not is_multiplayer_authority():
+		_update_puppet_animations()
+
+func _update_puppet_animations():
+	var current_speed = velocity.length()
+	# Check your AnimationTree paths! 
+	# Standard is "parameters/Motion/playback" or "parameters/playback"
+	var playback = AnimTree.get("parameters/Motion/playback")
+	
+	if playback:
+		if current_speed > 1.0:
+			playback.travel("Run")
+		else:
+			playback.travel("Idle")
+
 func take_damage(amount):
-	# [MULTIPLAYER] Only the server deals damage
 	if multiplayer.is_server():
 		health.take_damage(amount)
 
 func _on_death_logic():
 	on_player_died.emit()
 	
-	# Stop moving/physics
+	# Stop physics
 	set_physics_process(false)
 	
 	# Play death animation
 	AnimTree["parameters/LifeState/transition_request"] = "dead"
 	AnimPlayer.stop()
 	
-	# --- FIX 1: UNCOMMENT THIS LINE ---
-	# This sends the signal to the HUD so the button appears!
+	# Trigger HUD Button
 	SignalBus.player_died.emit() 
 	
-	# --- FIX 2: REMOVE THE TIMER AND QUEUE_FREE ---
-	# We deleted the timer here.
-	# Why? Because the HUD is now attached to the Player.
-	# If we delete the Player automatically, the Death Screen deletes too!
-	# We will let the "Respawn" button handle the cleanup.
+	# DO NOT queue_free() here! Wait for the Respawn button.
