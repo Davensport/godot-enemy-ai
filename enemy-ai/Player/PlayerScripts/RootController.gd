@@ -68,7 +68,13 @@ func _apply_color_to_mesh(color):
 # --- LIFECYCLE ---
 
 func _enter_tree():
-	set_multiplayer_authority(str(name).to_int())
+	var my_id = str(name).to_int()
+	set_multiplayer_authority(my_id)
+	
+	# --- NEW: Grant Authority to Components ---
+	# This ensures the Combat System allows you to send "Attack" RPCs
+	for child in $Components.get_children():
+		child.set_multiplayer_authority(my_id)
 
 func _ready():
 	await get_tree().process_frame

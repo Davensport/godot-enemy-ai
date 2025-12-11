@@ -19,14 +19,15 @@ signal on_damage_multiplier_changed(new_mult: float)
 @export var projectile_scene: PackedScene 
 @export var camera: Camera3D 
 
+# Ensure this path matches where your sword is in the Scene Tree!
 @onready var sword_scene = $"../../RootNode/CharacterArmature/Skeleton3D/WeaponSocket_Normal/Sword"
 
 var can_fireball: bool = true 
 var _buffer_timer: float = 0.0
-var _queued_action: Callable = Callable() # Stores the function we want to run
+var _queued_action: Callable = Callable()
 
 func _ready():
-	# We connect signals to the BUFFER functions, not the perform functions
+	# We connect signals to the BUFFER functions
 	input.on_attack_sword.connect(buffer_sword_attack)
 	input.on_attack_fireball.connect(buffer_fireball_attack)
 	
@@ -38,15 +39,13 @@ func _process(delta: float):
 		_buffer_timer -= delta
 		
 		# 2. Try to Execute Buffered Action
-		# We only execute if the animation tree says we are NOT playing an attack
 		if not is_animation_busy():
-			_queued_action.call()
-			_buffer_timer = 0.0 # Consume buffer so we don't double attack
+			if _queued_action.is_valid():
+				_queued_action.call()
+			_buffer_timer = 0.0 
 
 # --- HELPER: The Core of the Logic ---
 func is_animation_busy() -> bool:
-	# This checks the "active" property of the OneShot node in the AnimationTree.
-	# It returns TRUE if the animation is currently playing or blending out.
 	return animation_tree.get("parameters/AttackShot/active")
 
 # --- BUFFERING INPUTS ---
@@ -58,19 +57,34 @@ func buffer_fireball_attack():
 	_buffer_timer = buffer_window
 	_queued_action = perform_fireball
 
-# --- EXECUTION ---
+# --- EXECUTION (RPC UPDATED) ---
+
 func perform_sword_attack():
-	# Double check sword specific logic (optional, but good safety)
+	# Step 1: Tell the network to attack
+	# "call_local" ensures it runs on YOUR screen immediately too
+	execute_sword_attack.rpc()
+
+@rpc("call_local", "reliable")
+func execute_sword_attack():
+	# Step 2: The actual logic that runs on every computer
+	
+	# Safety check
 	if sword_scene.currently_attacking: return
 
+	# Play Animation
 	animation_tree.set("parameters/AttackType/transition_request", "state_0")
 	animation_tree.set("parameters/AttackShot/request", AnimationNodeOneShot.ONE_SHOT_REQUEST_FIRE)
+	
+	# Activate Hitbox
 	sword_scene.attack()
 		
 func perform_fireball():
-	# Logic check: cooldown
 	if not can_fireball: return
-		
+	# Tell network to fire
+	execute_fireball_attack.rpc()
+
+@rpc("call_local", "reliable")
+func execute_fireball_attack():
 	can_fireball = false
 	
 	animation_tree.set("parameters/AttackType/transition_request", "state_1")
@@ -81,12 +95,12 @@ func perform_fireball():
 		get_tree().root.add_child(fireball)
 		fireball.global_position = projectile_spawn_point.global_position
 		
+		# Visual rotation match
 		if camera:
 			fireball.global_rotation = camera.global_rotation
 		else:
 			fireball.global_rotation = projectile_spawn_point.global_rotation
 
-	# Cooldown Management
-	# We still use a timer for cooldowns because that's game logic, not animation logic.
+	# Visual Cooldown
 	await get_tree().create_timer(fireball_cooldown).timeout
 	can_fireball = true
