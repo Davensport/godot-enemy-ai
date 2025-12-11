@@ -34,7 +34,14 @@ func _spawn_player(id):
 	player.name = str(id)
 	
 	if has_node("SpawnPoint"):
-		player.position = $SpawnPoint.position
+		# --- NEW: SPREAD PLAYERS OUT ---
+		# Create a random spacing of +/- 3 meters
+		var random_x = randf_range(-3, 3)
+		var random_z = randf_range(-3, 3)
+		var offset = Vector3(random_x, 0, random_z)
+		
+		# Add that offset to the main spawn point
+		player.position = $SpawnPoint.position + offset
 		player.rotation = $SpawnPoint.rotation
 	else:
 		player.position = Vector3(0, 10, 0) 
