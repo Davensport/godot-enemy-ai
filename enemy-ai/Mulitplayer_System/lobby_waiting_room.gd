@@ -2,10 +2,12 @@ extends Node3D
 
 # --- 3D RESOURCES ---
 @onready var spawner = $MultiplayerSpawner
+# Make sure this path points to your dummy character! 
+# (It might be "res://Mulitplayer_System/LobbyCharacter.tscn" if you moved it)
 @onready var lobby_character_scene = preload("res://Mulitplayer_System/LobbyCharacter.tscn")
 @onready var podiums = [$Podium1, $Podium2, $Podium3, $Podium4]
 
-# --- UI RESOURCES (YOUR CORRECT PATHS) ---
+# --- UI RESOURCES ---
 @onready var color_picker = $CanvasLayer/UI/ColorPickerBtn
 @onready var lobby_id_label = $LobbyCodeLabel
 @onready var copy_button = $LobbyCodeLabel/CopyButton
@@ -22,16 +24,14 @@ func _ready():
 	if multiplayer.is_server():
 		_spawn_lobby_players()
 		
-		# --- NEW: Listen for raw network connections ---
-		# This fires instantly when the 2nd laptop connects, 
-		# forcing the Host to spawn the new mannequin immediately.
+		# Listen for connections to update the podiums
 		multiplayer.peer_connected.connect(_on_peer_connected)
 		multiplayer.peer_disconnected.connect(_on_peer_disconnected)
 
 	# 4. Listen for Steam updates (Backups for name/color changes)
 	Global.player_list_updated.connect(_refresh_display)
 
-# --- NEW HELPER FUNCTIONS ---
+# --- HELPER FUNCTIONS ---
 func _on_peer_connected(id):
 	_spawn_lobby_players()
 
@@ -71,7 +71,7 @@ func _spawn_lobby_players():
 			if id == multiplayer.get_unique_id():
 				char_instance.player_name = Steam.getPersonaName()
 			
-			# Apply Saved Color
+			# Apply Saved Color (If they picked one earlier)
 			if id in Global.player_colors:
 				char_instance.player_color = Global.player_colors[id]
 			
@@ -87,21 +87,27 @@ func _refresh_display():
 	if multiplayer.is_server():
 		_spawn_lobby_players()
 
+# ==============================================================================
+# COLOR PICKER LOGIC (THE CRITICAL UPDATE)
+# ==============================================================================
 func _on_color_picker_btn_color_changed(color):
 	Global.my_player_color = color
 	
+	# 1. Update the visual dummy in the lobby
 	var my_id = multiplayer.get_unique_id()
 	if has_node(str(my_id)):
 		var my_char = get_node(str(my_id))
 		
-		# --- FIX START ---
 		if multiplayer.is_server():
-			# I AM THE HOST: Run logic directly
 			my_char.set_color_on_server(color)
 		else:
-			# I AM A CLIENT: RPC the Host
 			my_char.set_color_on_server.rpc_id(1, color)
-		# --- FIX END ---
+
+	# 2. SEND TO SERVER GLOBAL LIST (The Fix!)
+	# This ensures the Host remembers your color when the level loads.
+	Global.register_player_color.rpc(color)
+
+
 # ==============================================================================
 # UI BUTTON LOGIC
 # ==============================================================================
@@ -110,13 +116,12 @@ func _on_color_picker_btn_color_changed(color):
 func _on_copy_button_pressed():
 	DisplayServer.clipboard_set(str(Global._hosted_lobby_id))
 	
-	# Optional feedback
 	var original_text = copy_button.text
 	copy_button.text = "Copied!"
 	await get_tree().create_timer(2.0).timeout
 	copy_button.text = original_text
 
-# 2. INVITE FRIENDS (Steam Overlay) <--- ADDED BACK
+# 2. INVITE FRIENDS
 func _on_invite_friends_pressed():
 	Steam.activateGameOverlayInviteDialog(Global._hosted_lobby_id)
 
