@@ -22,8 +22,11 @@ var _hosted_lobby_id = 0
 var steam_peer = SteamMultiplayerPeer.new()
 var players_loaded = 0
 
-# --- COLOR SYSTEM (Fixed) ---
-# We use this to store colors so we can apply them during spawn
+# --- COLOR SYSTEM ---
+# This was missing! It stores YOUR local color choice.
+var my_player_color = Color.WHITE 
+
+# This stores EVERYONE'S color choices (PeerID : Color)
 var player_colors = {} 
 
 func _ready():
@@ -38,18 +41,16 @@ func _process(_delta):
 	Steam.run_callbacks()
 
 # ==============================================================================
-# COLOR SYNC (NEW & CRITICAL)
+# COLOR SYNC
 # ==============================================================================
-# This function allows Clients to tell the Host "I picked this color!"
 @rpc("any_peer", "call_local", "reliable")
 func register_player_color(new_color):
 	var sender_id = multiplayer.get_remote_sender_id()
 	player_colors[sender_id] = new_color
-	# Optional: Print for debug
 	print("Registered Color for Peer %s: %s" % [sender_id, new_color])
 
 # ==============================================================================
-# HOSTING / JOINING (Standard)
+# HOSTING / JOINING
 # ==============================================================================
 func become_host() -> void:
 	Steam.createLobby(Steam.LOBBY_TYPE_PUBLIC, MAX_PLAYERS)
@@ -94,16 +95,14 @@ func _switch_to_lobby_menu():
 
 @rpc("call_local", "reliable")
 func start_game():
-	# Reset the loading counter when starting a new game
 	players_loaded = 0
-	
 	var scene = load(GAME_SCENE).instantiate()
 	get_tree().root.add_child(scene)
 	get_tree().current_scene.queue_free()
 	get_tree().current_scene = scene
 
 # ==============================================================================
-# SPAWNING LOGIC (Fixed)
+# SPAWNING LOGIC
 # ==============================================================================
 
 @rpc("any_peer", "call_local", "reliable")
@@ -128,20 +127,15 @@ func server_spawn_players():
 	
 	var index = 0
 	for id in all_peer_ids:
-		# 1. Instantiate
 		var player_instance = multiplayer_scene.instantiate()
 		player_instance.name = str(id)
 		
-		# 2. APPLY COLOR (The Fix)
-		# We use the correct variable name 'player_color' from RootController.gd
+		# APPLY COLOR
 		if id in player_colors:
-			# FIX: Variable name mismatch fixed here (was network_color)
 			player_instance.player_color = player_colors[id]
 		
-		# 3. Add to Scene
 		players_node.add_child(player_instance, true)
 		
-		# 4. Position
 		var offset = Vector3(index * 2, 0, 0)
 		if spawn_point:
 			player_instance.global_position = spawn_point.global_position + offset
