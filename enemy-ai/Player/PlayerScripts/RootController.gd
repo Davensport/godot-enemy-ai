@@ -11,7 +11,7 @@ signal on_player_died
 @onready var AnimPlayer = $AnimationPlayer
 @onready var AnimTree = $AnimationTree
 
-# --- VISUALS (Updated Paths) ---
+# --- VISUALS (Specific Paths) ---
 # The Body Mesh
 @onready var character_mesh = $RootNode/CharacterArmature/Skeleton3D/Rogue
 # The Hair Mesh
@@ -28,6 +28,7 @@ var _saved_collision_mask: int = 1
 var player_name: String = ""
 
 # 1. THE SETTER: Triggers paint whenever the variable changes
+# This runs automatically when the MultiplayerSynchronizer updates the variable!
 @export var player_color: Color = Color.WHITE:
 	set(new_color):
 		player_color = new_color
@@ -73,6 +74,7 @@ func _ready():
 	await get_tree().process_frame
 	
 	# --- APPLY SAVED COLOR FROM LOBBY ---
+	# This handles the Local Player's own color
 	var my_id = str(name).to_int()
 	if Global.player_colors.has(my_id):
 		player_color = Global.player_colors[my_id]
@@ -107,6 +109,11 @@ func _ready():
 			character_mesh.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_ON
 		if hair_mesh:
 			hair_mesh.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_ON
+
+	# --- FINAL COLOR CHECK ---
+	# Force apply the color one last time to catch any network syncs 
+	# that happened before the mesh was fully ready.
+	_apply_color_to_mesh(player_color)
 
 	if health:
 		health.on_death.connect(_on_death_logic)
