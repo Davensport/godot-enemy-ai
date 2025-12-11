@@ -23,20 +23,21 @@ var is_flying: bool = false
 var _saved_collision_mask: int = 1
 var _current_visual_color: Color = Color.WHITE 
 
-# --- LOBBY COMPATIBILITY ---
 var player_name: String = ""
 
 # --- NETWORK VARIABLES ---
-@export var player_color: Color = Color.WHITE
+# We keep the RPC logic just in case, but the Global check is the main fix.
+@export var player_color: Color = Color.WHITE:
+	set(new_color):
+		player_color = new_color
+		_apply_color_to_mesh(new_color)
 
-# 1. NETWORK SETTER (The Shout)
 @rpc("any_peer", "call_local")
-func set_color_on_server(new_color):
-	player_color = new_color
-	# We manually trigger the paint here to ensure the RPC works
-	_apply_color_to_mesh(new_color)
+func set_color_on_server(color):
+	player_color = color
+	_apply_color_to_mesh(color)
 
-# 2. THE PAINTER
+# --- PAINTER ---
 func _apply_color_to_mesh(color):
 	if not is_node_ready(): await ready
 	
@@ -72,31 +73,32 @@ func _enter_tree():
 func _ready():
 	await get_tree().process_frame
 	
+	# --- THE FIX: GLOBAL LOOKUP FOR EVERYONE ---
+	# We do this for ALL players, not just our own.
+	# "Who is this player? Let's check the list."
+	var this_player_id = str(name).to_int()
+	
+	# 1. Try to find the color in the Global Lobby List
+	if Global.player_colors.has(this_player_id):
+		player_color = Global.player_colors[this_player_id]
+		_apply_color_to_mesh(player_color)
+	
+	# 2. If I am the Client owner, ensure the Server knows my color too (Backup)
+	if is_multiplayer_authority():
+		set_color_on_server.rpc(player_color)
+	# -------------------------------------------
+	
 	if is_multiplayer_authority():
 		# --- I AM THE PLAYER (LOCAL) ---
 		Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
 		camera_rig.current = true
 		
-		# 1. GET MY COLOR (From Lobby)
-		var my_id = multiplayer.get_unique_id()
-		var my_color = Color.WHITE
-		if Global.player_colors.has(my_id):
-			my_color = Global.player_colors[my_id]
-		
-		# 2. APPLY LOCALLY
-		_apply_color_to_mesh(my_color)
-		
-		# 3. FORCE SEND TO SERVER (The Fix)
-		# We command the server to update our variable
-		set_color_on_server.rpc(my_color)
-		
-		# Visual Fixes (Hide self)
+		# Hide self
 		if character_mesh:
 			character_mesh.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_SHADOWS_ONLY
 		if hair_mesh:
 			hair_mesh.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_SHADOWS_ONLY
 		
-		# Spawn HUD
 		if hud_scene:
 			var hud = hud_scene.instantiate()
 			add_child(hud)
@@ -115,16 +117,16 @@ func _ready():
 		if hair_mesh:
 			hair_mesh.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_ON
 		
-		# Apply whatever color the variable currently holds (Sync catch-up)
+		# Just in case the Global check failed, apply whatever variable we have
 		_apply_color_to_mesh(player_color)
 
 	if health:
 		health.on_death.connect(_on_death_logic)
 
-# --- PROCESS LOOP (Watchdog) ---
+# --- PROCESS LOOP ---
 
 func _process(delta):
-	# Watchdog: If network updates the variable, force the mesh to match
+	# Watchdog: If RPC comes in later, update the mesh
 	if player_color != _current_visual_color:
 		_apply_color_to_mesh(player_color)
 
@@ -156,7 +158,6 @@ func _input(event):
 
 func _physics_process(delta):
 	if is_flying:
-		# Simple fly
 		var dir = Input.get_vector("move_left", "move_right", "move_forward", "move_backward")
 		var cam_basis = camera_rig.global_basis
 		var target_vel = (cam_basis * Vector3(dir.x, 0, dir.y)).normalized() * 20.0
