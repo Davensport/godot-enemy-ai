@@ -11,10 +11,8 @@ signal on_player_died
 @onready var AnimPlayer = $AnimationPlayer
 @onready var AnimTree = $AnimationTree
 
-# --- VISUALS (Specific Paths) ---
-# The Body Mesh
+# --- VISUALS ---
 @onready var character_mesh = $RootNode/CharacterArmature/Skeleton3D/Rogue
-# The Hair Mesh
 @onready var hair_mesh = $RootNode/CharacterArmature/Skeleton3D/Head/NurbsPath_001
 
 # --- CONFIG ---
@@ -23,34 +21,35 @@ signal on_player_died
 # --- STATE ---
 var is_flying: bool = false
 var _saved_collision_mask: int = 1
+var _current_visual_color: Color = Color.WHITE 
 
-# --- LOBBY COMPATIBILITY & COLOR SYSTEM ---
+# --- LOBBY COMPATIBILITY ---
 var player_name: String = ""
 
-# 1. THE SETTER: Triggers paint whenever the variable changes
-# This runs automatically when the MultiplayerSynchronizer updates the variable!
-@export var player_color: Color = Color.WHITE:
-	set(new_color):
-		player_color = new_color
-		_apply_color_to_mesh(new_color)
+# --- NETWORK VARIABLES ---
+@export var player_color: Color = Color.WHITE
 
-# 2. THE NETWORK LOGIC: Syncs color across network
+# 1. NETWORK SETTER (The Shout)
 @rpc("any_peer", "call_local")
-func set_color_on_server(color):
-	player_color = color
+func set_color_on_server(new_color):
+	player_color = new_color
+	# We manually trigger the paint here to ensure the RPC works
+	_apply_color_to_mesh(new_color)
 
-# 3. THE PAINTER: Finds the meshes and dyes them
+# 2. THE PAINTER
 func _apply_color_to_mesh(color):
-	# Wait until meshes are ready
 	if not is_node_ready(): await ready
+	
+	_current_visual_color = color
 	
 	# Paint Body
 	if character_mesh:
 		var mat = character_mesh.get_active_material(0)
 		if mat:
-			mat = mat.duplicate()
-			mat.albedo_color = color
-			character_mesh.set_surface_override_material(0, mat)
+			if mat.albedo_color != color:
+				mat = mat.duplicate()
+				mat.albedo_color = color
+				character_mesh.set_surface_override_material(0, mat)
 		else:
 			var new_mat = StandardMaterial3D.new()
 			new_mat.albedo_color = color
@@ -60,9 +59,10 @@ func _apply_color_to_mesh(color):
 	if hair_mesh:
 		var hair_mat = hair_mesh.get_active_material(0)
 		if hair_mat:
-			hair_mat = hair_mat.duplicate()
-			hair_mat.albedo_color = color
-			hair_mesh.set_surface_override_material(0, hair_mat)
+			if hair_mat.albedo_color != color:
+				hair_mat = hair_mat.duplicate()
+				hair_mat.albedo_color = color
+				hair_mesh.set_surface_override_material(0, hair_mat)
 
 # --- LIFECYCLE ---
 
@@ -70,28 +70,33 @@ func _enter_tree():
 	set_multiplayer_authority(str(name).to_int())
 
 func _ready():
-	# Wait one frame for network/global setup
 	await get_tree().process_frame
-	
-	# --- APPLY SAVED COLOR FROM LOBBY ---
-	# This handles the Local Player's own color
-	var my_id = str(name).to_int()
-	if Global.player_colors.has(my_id):
-		player_color = Global.player_colors[my_id]
-	# ------------------------------------
 	
 	if is_multiplayer_authority():
 		# --- I AM THE PLAYER (LOCAL) ---
 		Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
 		camera_rig.current = true
 		
-		# 1. VISUAL FIX: Hide BODY/HAIR from my camera (Keep Shadows)
+		# 1. GET MY COLOR (From Lobby)
+		var my_id = multiplayer.get_unique_id()
+		var my_color = Color.WHITE
+		if Global.player_colors.has(my_id):
+			my_color = Global.player_colors[my_id]
+		
+		# 2. APPLY LOCALLY
+		_apply_color_to_mesh(my_color)
+		
+		# 3. FORCE SEND TO SERVER (The Fix)
+		# We command the server to update our variable
+		set_color_on_server.rpc(my_color)
+		
+		# Visual Fixes (Hide self)
 		if character_mesh:
 			character_mesh.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_SHADOWS_ONLY
 		if hair_mesh:
 			hair_mesh.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_SHADOWS_ONLY
 		
-		# 2. SPAWN HUD
+		# Spawn HUD
 		if hud_scene:
 			var hud = hud_scene.instantiate()
 			add_child(hud)
@@ -99,31 +104,46 @@ func _ready():
 				hud.setup_ui(self)
 				
 	else:
-		# --- I AM A PUPPET (OTHER PLAYER) ---
+		# --- I AM A PUPPET ---
 		camera_rig.current = false
 		set_physics_process(false)
-		set_process(true) # Keep visual animations running!
+		set_process(true)
 		
-		# Ensure meshes are FULLY VISIBLE for others
+		# Ensure visible
 		if character_mesh:
 			character_mesh.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_ON
 		if hair_mesh:
 			hair_mesh.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_ON
-
-	# --- FINAL COLOR CHECK ---
-	# Force apply the color one last time to catch any network syncs 
-	# that happened before the mesh was fully ready.
-	_apply_color_to_mesh(player_color)
+		
+		# Apply whatever color the variable currently holds (Sync catch-up)
+		_apply_color_to_mesh(player_color)
 
 	if health:
 		health.on_death.connect(_on_death_logic)
 
-# --- INPUT & PHYSICS ---
+# --- PROCESS LOOP (Watchdog) ---
+
+func _process(delta):
+	# Watchdog: If network updates the variable, force the mesh to match
+	if player_color != _current_visual_color:
+		_apply_color_to_mesh(player_color)
+
+	if not is_multiplayer_authority():
+		_update_puppet_animations()
+
+func _update_puppet_animations():
+	var current_speed = velocity.length()
+	var playback = AnimTree.get("parameters/Motion/playback")
+	if playback:
+		if current_speed > 0.1:
+			playback.travel("Run")
+		else:
+			playback.travel("Idle")
+
+# --- PHYSICS ---
 
 func _input(event):
 	if not is_multiplayer_authority(): return
-
-	# Fly Mode (Debug)
 	if event is InputEventKey and event.pressed and event.keycode == KEY_P:
 		is_flying = !is_flying
 		if is_flying:
@@ -135,8 +155,8 @@ func _input(event):
 			collision_mask = _saved_collision_mask
 
 func _physics_process(delta):
-	# Authority only (Local Physics)
 	if is_flying:
+		# Simple fly
 		var dir = Input.get_vector("move_left", "move_right", "move_forward", "move_backward")
 		var cam_basis = camera_rig.global_basis
 		var target_vel = (cam_basis * Vector3(dir.x, 0, dir.y)).normalized() * 20.0
@@ -145,28 +165,9 @@ func _physics_process(delta):
 		velocity = velocity.lerp(target_vel, 10.0 * delta)
 	else:
 		movement.handle_movement(delta)
-	
 	move_and_slide()
 
-# --- ANIMATION SYNC ---
-
-func _process(delta):
-	if not is_multiplayer_authority():
-		_update_puppet_animations()
-
-func _update_puppet_animations():
-	# Use velocity to drive animation for remote players
-	var current_speed = velocity.length()
-	var playback = AnimTree.get("parameters/Motion/playback")
-	
-	if playback:
-		# SENSITIVITY FIX: 0.1 ensures even slow movement triggers running
-		if current_speed > 0.1:
-			playback.travel("Run")
-		else:
-			playback.travel("Idle")
-
-# --- COMBAT & DEATH ---
+# --- DEATH ---
 
 func take_damage(amount):
 	if multiplayer.is_server():
@@ -175,9 +176,6 @@ func take_damage(amount):
 func _on_death_logic():
 	on_player_died.emit()
 	set_physics_process(false)
-	
 	AnimTree["parameters/LifeState/transition_request"] = "dead"
 	AnimPlayer.stop()
-	
-	# Show the Respawn Button
 	SignalBus.player_died.emit()
