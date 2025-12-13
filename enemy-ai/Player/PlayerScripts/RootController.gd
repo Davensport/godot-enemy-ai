@@ -74,7 +74,7 @@ func _ready():
 	
 	var this_player_id = str(name).to_int()
 	
-	# Color Sync Logic
+	# 1. Color Sync
 	if Global.player_colors.has(this_player_id):
 		player_color = Global.player_colors[this_player_id]
 		_apply_color_to_mesh(player_color)
@@ -87,6 +87,7 @@ func _ready():
 		Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
 		camera_rig.current = true
 		
+		# Shadow settings
 		if character_mesh:
 			character_mesh.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_SHADOWS_ONLY
 		if hair_mesh:
@@ -96,11 +97,11 @@ func _ready():
 		if hud_scene:
 			var hud = hud_scene.instantiate()
 			add_child(hud)
-			# Important: We pass 'self' so the HUD can find our HealthComponent
 			if hud.has_method("setup_ui"):
 				hud.setup_ui(self)
-			else:
-				push_error("HUD Scene is missing 'setup_ui' function!")
+		
+		# NEW: Listen for Respawn Click from UI
+		SignalBus.respawn_requested.connect(_on_ui_respawn_requested)
 				
 	else:
 		# --- PUPPET ---
@@ -115,11 +116,9 @@ func _ready():
 		
 		_apply_color_to_mesh(player_color)
 
-	# LISTEN FOR DEATH (Server Side & Client Side)
-	if health:
-		# Only the server should drive the death logic via signal initially
-		if multiplayer.is_server():
-			health.on_death.connect(_on_death_logic)
+	# LISTEN FOR DEATH (Server Side Only to start the chain)
+	if health and multiplayer.is_server():
+		health.on_death.connect(_on_death_logic)
 
 # --- PROCESS LOOP ---
 
@@ -170,45 +169,35 @@ func _physics_process(delta):
 # 1. CALLED BY ENEMY ON SERVER
 func take_damage(amount):
 	if multiplayer.is_server():
-		print("Server: Player ", name, " taking ", amount, " damage.")
 		health.take_damage(amount)
-		
-		# Send new values to everyone
+		# Send new values to everyone (Critical: Use 'any_peer' RPC below)
 		_rpc_update_health.rpc(health.current_health, health.max_health)
 
 # 2. RECEIVED BY EVERYONE (Including Client Owner)
-# WAS: @rpc("call_local", "reliable")
-# CHANGE TO:
-@rpc("any_peer", "call_local", "reliable") 
+# We add "any_peer" so the Server (ID 1) can call this function on the Client (ID X)
+@rpc("any_peer", "call_local", "reliable")
 func _rpc_update_health(new_health, new_max):
-	# Security: Ensure only the Server (ID 1) sent this!
-	if multiplayer.get_remote_sender_id() != 1:
-		return
+	# Security check (Optional but good): Only accept updates from Server
+	if multiplayer.get_remote_sender_id() != 1: return
 
-	print("Client: Received Health Update: ", new_health, "/", new_max)
-	
 	if health:
 		health.current_health = new_health
 		health.max_health = new_max
+		
+		# Force the UI to update
 		health.on_health_changed.emit(new_health, new_max)
 
 # 3. SERVER DETECTS DEATH -> COMMANDS DEATH
 func _on_death_logic():
 	if multiplayer.is_server():
-		print("Server: Player ", name, " has died. Sending RPC.")
 		_rpc_player_died.rpc()
 
 # 4. EVERYONE EXECUTES DEATH
-# WAS: @rpc("call_local", "reliable")
-# CHANGE TO:
 @rpc("any_peer", "call_local", "reliable")
 func _rpc_player_died():
-	# Security: Ensure only the Server sent this
-	if multiplayer.get_remote_sender_id() != 1:
-		return
+	# Security check
+	if multiplayer.get_remote_sender_id() != 1: return
 
-	print("Client: executing death logic for ", name)
-	
 	on_player_died.emit()
 	
 	# STOP MOVEMENT
@@ -220,7 +209,45 @@ func _rpc_player_died():
 	AnimPlayer.stop()
 	
 	# GLOBAL SIGNAL (Only for the local player who owns this character)
-	# This triggers the "You Died" screen
 	if is_multiplayer_authority():
-		print("Client: Emitting Global SignalBus.player_died")
 		SignalBus.player_died.emit()
+
+# --- RESPAWN LOGIC (NEW) ---
+
+# A. CLIENT: Triggered by UI Button
+func _on_ui_respawn_requested():
+	# Ask server to reset us
+	_rpc_request_respawn.rpc_id(1)
+
+# B. SERVER: Reset State
+@rpc("any_peer", "call_local", "reliable")
+func _rpc_request_respawn():
+	if not multiplayer.is_server(): return
+	
+	# 1. Reset Health
+	if health:
+		# If you don't have reset_health(), use health.current_health = health.max_health
+		health.reset_health() 
+		_rpc_update_health.rpc(health.current_health, health.max_health)
+	
+	# 2. Reset Position (Teleport to spawn)
+	global_position = Vector3(0, 2, 0) # CHANGE THIS to your actual spawn point logic!
+	velocity = Vector3.ZERO
+	
+	# 3. Tell everyone to wake up the puppet
+	_rpc_perform_respawn.rpc()
+
+# C. ALL CLIENTS: Wake up
+@rpc("any_peer", "call_local", "reliable")
+func _rpc_perform_respawn():
+	# Security check
+	if multiplayer.get_remote_sender_id() != 1: return
+
+	# Re-enable Physics
+	set_physics_process(true)
+	
+	# Reset Animation
+	AnimTree["parameters/LifeState/transition_request"] = "alive" 
+	# Fallback if tree isn't set up perfectly
+	var playback = AnimTree.get("parameters/Motion/playback")
+	if playback: playback.start("Idle")
