@@ -65,7 +65,8 @@ func _spawn_enemy():
 	var spawn_pos = global_position + Vector3(random_x, 0, random_z)
 	
 	# 5. Add to scene
-	get_parent().add_child(enemy_instance)
+	# The 'true' argument forces a readable, network-safe name (e.g., "SkeleWarrior")
+	get_parent().add_child(enemy_instance, true)
 	enemy_instance.global_position = spawn_pos
 	
 	# 6. Track enemy count
