@@ -4,35 +4,29 @@ extends Node3D
 @onready var ready_icon = $ReadyIcon 
 
 # --- MESH REFERENCES ---
-# 1. The Main Body
 @onready var body_mesh = $"Mesh/Root Scene/RootNode/CharacterArmature/Skeleton3D/Rogue"
-# 2. The Hair
+# Update this path if it is incorrect for your project!
 @onready var hair_mesh = $"Mesh/Root Scene/RootNode/CharacterArmature/Skeleton3D/Head/NurbsPath_001"
 
 # ==============================================================================
 # CONFIGURATION
 # ==============================================================================
-# Map the part name to:
-#  - "surface": Which material slot number to paint
-#  - "target": "body" or "hair" to know which mesh to use
 const VISUAL_CONFIG = {
 	"Tunic": { "surface": 3, "target": "body" }, 
-	"Skin":  { "surface": 0, "target": "body" },
+	"Skin":  { "surface": 1, "target": "body" },
 	"Hair":  { "surface": 0, "target": "hair" } 
 }
 
-# Default Data (NULL means "Use Original Mesh Material")
 var player_data = {
 	"Tunic": null,
 	"Skin": null,
 	"Hair": null
 }
 
-# Legacy support for old scripts that might try to set 'player_color'
-@export var player_color := Color.WHITE:
-	set(new_color):
-		player_color = new_color
-		apply_customization_data({"Tunic": new_color})
+# --- THE FIX IS HERE ---
+# We removed the 'set(new_color)' block. 
+# Now, this variable is just data. It won't overwrite your visuals.
+@export var player_color := Color.WHITE
 
 @export var player_name := "":
 	set(value):
@@ -48,7 +42,6 @@ func _ready():
 	
 	_apply_visuals()
 	
-	# Sync Steam Name
 	if name.to_int() == multiplayer.get_unique_id():
 		var my_name = Steam.getPersonaName()
 		if multiplayer.is_server():
@@ -108,8 +101,6 @@ func set_name_on_server(new_name):
 		player_name = new_name
 
 @rpc("any_peer", "call_remote", "reliable")
-func set_color_on_server(new_color):
-	if multiplayer.is_server():
-		player_color = new_color
-		var id = name.to_int()
-		Global.update_customization("Tunic", new_color)
+func set_color_on_server(_new_color):
+	# We leave this empty or redirect it, but we don't want it forcing 'player_color' logic
+	pass
