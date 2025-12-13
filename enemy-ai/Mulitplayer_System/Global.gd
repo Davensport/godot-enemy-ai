@@ -3,7 +3,7 @@ extends Node
 # --- SIGNALS ---
 signal lobby_joined(lobby_id)
 signal player_list_updated
-signal customization_updated # <--- NEW
+signal customization_updated
 
 # --- CONFIGURATION ---
 const LOBBY_NAME = "DAVENSPORT TEST"
@@ -22,15 +22,12 @@ var _hosted_lobby_id = 0
 var steam_peer = SteamMultiplayerPeer.new()
 var players_loaded = 0
 
-# --- GLOBAL STATE (NEW) ---
-var player_name: String = "Guest"         # Stores local player name
-var is_loading_from_save: bool = false    # For Crash Recovery logic later
+# --- GLOBAL STATE ---
+var player_name: String = "Guest"
+var is_loading_from_save: bool = false 
 
 # --- CUSTOMIZATION DATA ---
-# The new system (Stores Tunic, Skin, Hair)
 var player_customization = {} 
-
-# Legacy system (Kept to prevent crashes if old scripts reference it)
 var player_colors = {} 
 var my_player_color = Color.WHITE
 
@@ -46,43 +43,56 @@ func _process(_delta):
 	Steam.run_callbacks()
 
 # ==============================================================================
-# CUSTOMIZATION SYNC (NEW SYSTEM)
+# CUSTOMIZATION SYNC (FIXED)
 # ==============================================================================
 
-# 1. UPDATE CUSTOMIZATION (Tunic, Skin, Hair)
+# 1. CLIENT CALLS THIS (Request)
+func update_customization(part_name: String, color: Variant):
+	# Send request to server (ID 1)
+	_server_receive_customization.rpc_id(1, part_name, color)
+
+# 2. SERVER RECEIVES REQUEST
 @rpc("any_peer", "call_local", "reliable")
-func update_customization(part_name: String, color: Variant): # Changed type to Variant so it accepts null
+func _server_receive_customization(part_name: String, color: Variant):
+	# Security: Only the Server runs this
+	if not multiplayer.is_server(): return
+	
 	var sender_id = multiplayer.get_remote_sender_id()
 	
+	# Broadcast the approved change to EVERYONE (including the sender)
+	_broadcast_customization.rpc(sender_id, part_name, color)
+
+# 3. EVERYONE UPDATES THEIR LOCAL DATA
+@rpc("call_local", "reliable")
+func _broadcast_customization(player_id: int, part_name: String, color: Variant):
 	# If this player doesn't have an entry yet, create one with NULL defaults
-	if not player_customization.has(sender_id):
-		player_customization[sender_id] = {
-			"Tunic": null, # Null means "Use the original imported material"
-			"Skin": null,
+	if not player_customization.has(player_id):
+		player_customization[player_id] = {
+			"Tunic": null, # FIX: Default to Null (Original Mesh)
+			"Skin": null, 
 			"Hair": null
 		}
 	
 	# Update the specific part
-	player_customization[sender_id][part_name] = color
+	player_customization[player_id][part_name] = color
 	
-	# Legacy Support (Optional)
+	# Legacy Support
 	if part_name == "Tunic" and color != null:
-		player_colors[sender_id] = color
+		player_colors[player_id] = color
 	
+	# Notify the Lobby to repaint
 	customization_updated.emit()
 
-# 2. REGISTER COLOR (Legacy Support)
-# We keep this so if an old script calls it, it doesn't crash the game.
+
+# 4. LEGACY COLOR SUPPORT
 @rpc("any_peer", "call_local", "reliable")
 func register_player_color(new_color):
 	var sender_id = multiplayer.get_remote_sender_id()
-	player_colors[sender_id] = new_color
-	# Sync with new system
-	update_customization("Tunic", new_color) 
-	print("Registered Color for Peer %s: %s" % [sender_id, new_color])
+	# Forward to new system
+	update_customization("Tunic", new_color)
 
 # ==============================================================================
-# HOSTING / JOINING
+# HOSTING / JOINING (Unchanged)
 # ==============================================================================
 func become_host() -> void:
 	Steam.createLobby(Steam.LOBBY_TYPE_PUBLIC, MAX_PLAYERS)
@@ -100,14 +110,10 @@ func _on_lobby_created(_connect: int, lobby_id: int):
 			call_deferred("_switch_to_lobby_menu")
 
 func join_game(lobby_id: int):
-	print("Attempting to join lobby room: %s" % lobby_id)
-	
-	# Cleanup existing sessions
 	if multiplayer.has_multiplayer_peer():
 		multiplayer.multiplayer_peer = null
 	if steam_peer:
 		steam_peer.close()
-	
 	_hosted_lobby_id = lobby_id
 	Steam.joinLobby(lobby_id)
 
@@ -127,9 +133,6 @@ func connect_socket(steam_id: int):
 	if error == OK:
 		multiplayer.set_multiplayer_peer(steam_peer)
 
-# ==============================================================================
-# SCENE MANAGEMENT
-# ==============================================================================
 func _switch_to_lobby_menu():
 	get_tree().change_scene_to_file(LOBBY_MENU_SCENE)
 
@@ -142,25 +145,20 @@ func start_game():
 	get_tree().current_scene = scene
 
 # ==============================================================================
-# SPAWNING LOGIC
+# SPAWNING LOGIC (Unchanged)
 # ==============================================================================
-
 @rpc("any_peer", "call_local", "reliable")
 func player_loaded_level():
 	if multiplayer.is_server():
 		players_loaded += 1
 		var total_players = multiplayer.get_peers().size() + 1
-		
 		if players_loaded >= total_players:
 			server_spawn_players()
 
 func server_spawn_players():
 	var players_node = get_tree().current_scene.get_node_or_null("Players")
 	var spawn_point = get_tree().current_scene.get_node_or_null("SpawnPoint")
-	
-	if not players_node:
-		print("Error: No 'Players' node found in level!")
-		return
+	if not players_node: return
 
 	var all_peer_ids = multiplayer.get_peers()
 	all_peer_ids.append(1)
@@ -170,41 +168,31 @@ func server_spawn_players():
 		var player_instance = multiplayer_scene.instantiate()
 		player_instance.name = str(id)
 		
-		# --- APPLY CUSTOMIZATION ---
 		if id in player_customization:
-			# 1. Try to send the full dictionary (Future-proofing)
 			if player_instance.has_method("apply_customization_data"):
 				player_instance.apply_customization_data(player_customization[id])
-			
-			# 2. Legacy Fallback: Update just the color (for scripts relying on 'player_color')
 			if "Tunic" in player_customization[id]:
 				player_instance.player_color = player_customization[id]["Tunic"]
-		
-		# Fallback for old system if no customization exists yet
 		elif id in player_colors:
 			player_instance.player_color = player_colors[id]
-		# ---------------------------
 		
 		players_node.add_child(player_instance, true)
-		
 		var offset = Vector3(index * 2, 0, 0)
 		if spawn_point:
 			player_instance.global_position = spawn_point.global_position + offset
 		else:
 			player_instance.global_position = Vector3(0, 10, 0) + offset
-			
 		index += 1
 
 # ==============================================================================
-# HELPER FUNCTIONS
+# HELPER FUNCTIONS (Unchanged)
 # ==============================================================================
 func get_lobby_members():
 	var members = []
 	var num_members = Steam.getNumLobbyMembers(_hosted_lobby_id)
 	for i in range(num_members):
 		var member_steam_id = Steam.getLobbyMemberByIndex(_hosted_lobby_id, i)
-		var member_name = Steam.getFriendPersonaName(member_steam_id)
-		members.append(member_name)
+		members.append(Steam.getFriendPersonaName(member_steam_id))
 	return members
 
 func _on_lobby_chat_update(_lobby_id, _change_id, _making_change_id, _chat_state):

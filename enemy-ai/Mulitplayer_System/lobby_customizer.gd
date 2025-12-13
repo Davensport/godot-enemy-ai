@@ -88,4 +88,4 @@ func _apply_change():
 	color_display.color = selected_color
 	
 	# SEND TO SERVER (Using the code we wrote previously)
-	Global.update_customization.rpc(part_name, selected_color)
+	Global.update_customization(part_name, selected_color)

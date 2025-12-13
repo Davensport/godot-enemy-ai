@@ -11,7 +11,8 @@ extends Node3D
 @onready var copy_button = $CanvasLayer/LobbyCodeLabel/CopyButton
 @onready var start_game_button = $CanvasLayer/UI/StartGameButton 
 @onready var ready_button = $CanvasLayer/UI/ReadyButton
-@onready var customizer_ui = $CanvasLayer/LobbyCustomizer
+# Make sure you instantiated this scene in the CanvasLayer!
+@onready var customizer_ui = $CanvasLayer/LobbyCustomizer 
 
 # --- STATE ---
 var ready_status: Dictionary = {}
@@ -24,21 +25,31 @@ func _ready():
 		start_game_button.disabled = true
 		ready_button.visible = true
 		
-		# HOST: Initialize State
 		_init_host_ready_state()
-		_update_lobby_nodes() # Host spawns the dolls
+		_update_lobby_nodes()
 		
 		multiplayer.peer_connected.connect(_on_peer_connected)
 		multiplayer.peer_disconnected.connect(_on_peer_disconnected)
 	else:
 		start_game_button.visible = false
 		ready_button.visible = true
-		# CLIENT: Just update visuals on existing dolls
+		
+		# CLIENT: We might have joined AFTER the spawn happened. Check immediately.
 		_update_lobby_nodes()
+
+	# --- FIX: LISTEN FOR SPAWNS ---
+	# This ensures that AS SOON AS the node appears, we attach the UI.
+	spawner.spawned.connect(_on_spawner_spawned)
 
 	# Listen for Global updates
 	Global.player_list_updated.connect(_refresh_display)
 	Global.customization_updated.connect(_refresh_display)
+
+
+func _on_spawner_spawned(_node):
+	# The spawner just created a character. Update visuals immediately!
+	_update_lobby_nodes()
+
 
 # --- PEER MANAGEMENT ---
 
@@ -58,57 +69,51 @@ func _on_peer_disconnected(id):
 	_check_can_start()
 
 # ==============================================================================
-#  CORE LOBBY LOGIC (FIXED)
+#  CORE LOBBY LOGIC
 # ==============================================================================
 func _update_lobby_nodes():
-	# 1. SERVER ONLY: MANAGE SPAWNING / DELETING
+	# 1. SERVER ONLY: MANAGE SPAWNING
 	if multiplayer.is_server():
 		var peers = multiplayer.get_peers()
-		peers.append(1) # Add Host ID to the list
+		peers.append(1) 
 		
-		# A. Remove disconnected players
 		for child in get_children():
 			if child.name.is_valid_int():
 				var id = child.name.to_int()
 				if not id in peers:
 					child.queue_free()
 		
-		# B. Spawn new players
 		for id in peers:
 			if not has_node(str(id)):
 				var char_instance = lobby_character_scene.instantiate()
 				char_instance.name = str(id)
-				# Host sets name immediately
 				if id == multiplayer.get_unique_id():
 					char_instance.player_name = Steam.getPersonaName()
 				add_child(char_instance, true)
 
-	# 2. EVERYONE: UPDATE VISUALS & ATTACH UI
-	# We loop through ALL children (replicated nodes) instead of the "peers" list
-	# This ensures Clients find themselves even if get_peers() is incomplete.
+	# 2. EVERYONE: UPDATE VISUALS
 	var index = 0
 	for child in get_children():
-		# Is this a player node?
 		if child.name.is_valid_int():
 			var id = child.name.to_int()
 			
-			# A. POSITIONING
+			# A. Position
 			if index < podiums.size():
 				child.position = podiums[index].position
 				child.rotation = podiums[index].rotation
 			
-			# B. CUSTOMIZATION
+			# B. Apply Global Customization
 			if id in Global.player_customization:
 				if child.has_method("apply_customization_data"):
 					child.apply_customization_data(Global.player_customization[id])
 			
-			# C. READY VISUALS
+			# C. Ready Checkmarks
 			var is_ready = ready_status.get(id, false)
 			if child.has_method("set_ready_visuals"):
 				child.set_ready_visuals(is_ready)
 			
-			# D. ATTACH UI (THE FIX!)
-			# We check: Is this node ME?
+			# D. ATTACH UI (The Fix)
+			# Only attach if this is MY character
 			if id == multiplayer.get_unique_id():
 				if customizer_ui:
 					customizer_ui.visible = true
@@ -118,11 +123,10 @@ func _update_lobby_nodes():
 			index += 1
 
 func _refresh_display():
-	# Allow EVERYONE to run this to update colors/UI
 	_update_lobby_nodes()
 
 # ==============================================================================
-#  READY SYSTEM (Unchanged)
+#  READY SYSTEM
 # ==============================================================================
 
 func _on_ready_button_pressed():
@@ -163,8 +167,6 @@ func _sync_ready_status(new_status):
 	else:
 		ready_button.text = "READY UP" 
 		ready_button.modulate = Color.WHITE
-
-	# Update 3D Visuals
 	_update_lobby_nodes()
 
 # ==============================================================================
