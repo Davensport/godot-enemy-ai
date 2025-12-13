@@ -13,6 +13,8 @@ extends Node3D
 @onready var ready_button = $CanvasLayer/UI/ReadyButton
 # Make sure you instantiated this scene in the CanvasLayer!
 @onready var customizer_ui = $CanvasLayer/LobbyCustomizer 
+@onready var back_button: Button = $CanvasLayer/UI/BackButton
+
 
 # --- STATE ---
 var ready_status: Dictionary = {}
@@ -199,3 +201,11 @@ func _on_invite_friends_pressed():
 func _on_start_game_pressed():
 	if multiplayer.is_server():
 		Global.start_game.rpc()
+		
+func _on_back_button_pressed():
+	# 1. Clean up connection
+	Global.leave_lobby()
+	
+	# 2. Switch to Main Menu
+	# MAKE SURE THIS PATH IS CORRECT FOR YOUR PROJECT!
+	get_tree().change_scene_to_file("res://Mulitplayer_System/MainMenu.tscn")

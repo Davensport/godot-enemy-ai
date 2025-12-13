@@ -202,3 +202,22 @@ func _on_lobby_chat_update(_lobby_id, _change_id, _making_change_id, _chat_state
 
 func _on_persona_change(_steam_id, _flag):
 	player_list_updated.emit()
+	
+func leave_lobby():
+	# 1. Clear the Multiplayer Peer (Disconnects Godot logic)
+	if multiplayer.has_multiplayer_peer():
+		multiplayer.multiplayer_peer = null
+	
+	# 2. Close the Steam Peer (Disconnects Steam logic)
+	if steam_peer:
+		steam_peer.close()
+	
+	# 3. Leave the actual Steam Lobby (Clean cleanup)
+	if _hosted_lobby_id != 0:
+		Steam.leaveLobby(_hosted_lobby_id)
+		_hosted_lobby_id = 0
+	
+	# 4. Clear local data
+	player_customization.clear()
+	player_colors.clear()
+	players_loaded = 0

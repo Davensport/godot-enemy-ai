@@ -100,15 +100,6 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 
-[node name="ColorPickerBtn" type="ColorPickerButton" parent="CanvasLayer/UI"]
-visible = false
-layout_mode = 0
-offset_left = 1024.0
-offset_top = 601.0
-offset_right = 1136.0
-offset_bottom = 632.0
-text = "Change Color"
-
 [node name="InviteButton" type="Button" parent="CanvasLayer/UI"]
 layout_mode = 0
 offset_left = 523.0
@@ -134,11 +125,20 @@ offset_bottom = 607.0
 text = "Start Game
 "
 
+[node name="BackButton" type="Button" parent="CanvasLayer/UI"]
+layout_mode = 0
+offset_left = 11.0
+offset_top = 605.0
+offset_right = 125.0
+offset_bottom = 636.0
+text = "Back to Menu
+"
+
 [node name="LobbyCustomizer" parent="CanvasLayer" instance=ExtResource("2_fiu7e")]
 visible = false
 
 [connection signal="pressed" from="CanvasLayer/LobbyCodeLabel/CopyButton" to="." method="_on_copy_button_pressed"]
-[connection signal="color_changed" from="CanvasLayer/UI/ColorPickerBtn" to="." method="_on_color_picker_btn_color_changed"]
 [connection signal="pressed" from="CanvasLayer/UI/InviteButton" to="." method="_on_invite_friends_pressed"]
 [connection signal="pressed" from="CanvasLayer/UI/ReadyButton" to="." method="_on_ready_button_pressed"]
 [connection signal="pressed" from="CanvasLayer/UI/StartGameButton" to="." method="_on_start_game_pressed"]
+[connection signal="pressed" from="CanvasLayer/UI/BackButton" to="." method="_on_back_button_pressed"]
