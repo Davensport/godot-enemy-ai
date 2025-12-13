@@ -177,24 +177,20 @@ func take_damage(amount):
 		_rpc_update_health.rpc(health.current_health, health.max_health)
 
 # 2. RECEIVED BY EVERYONE (Including Client Owner)
-@rpc("call_local", "reliable")
+# WAS: @rpc("call_local", "reliable")
+# CHANGE TO:
+@rpc("any_peer", "call_local", "reliable") 
 func _rpc_update_health(new_health, new_max):
+	# Security: Ensure only the Server (ID 1) sent this!
+	if multiplayer.get_remote_sender_id() != 1:
+		return
+
 	print("Client: Received Health Update: ", new_health, "/", new_max)
 	
 	if health:
 		health.current_health = new_health
 		health.max_health = new_max
-		
-		# Force the UI to update
-		# If your UI is connected to 'on_health_changed', this makes the bar move.
 		health.on_health_changed.emit(new_health, new_max)
-		
-		# SAFETY CHECK: If we are effectively dead, trigger death locally too
-		# This catches cases where the 'Death' packet might be delayed
-		if new_health <= 0:
-			# We don't call _on_death_logic here to avoid double-triggers,
-			# we let the server send the official death command below.
-			pass
 
 # 3. SERVER DETECTS DEATH -> COMMANDS DEATH
 func _on_death_logic():
@@ -203,8 +199,14 @@ func _on_death_logic():
 		_rpc_player_died.rpc()
 
 # 4. EVERYONE EXECUTES DEATH
-@rpc("call_local", "reliable")
+# WAS: @rpc("call_local", "reliable")
+# CHANGE TO:
+@rpc("any_peer", "call_local", "reliable")
 func _rpc_player_died():
+	# Security: Ensure only the Server sent this
+	if multiplayer.get_remote_sender_id() != 1:
+		return
+
 	print("Client: executing death logic for ", name)
 	
 	on_player_died.emit()
