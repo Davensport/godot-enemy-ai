@@ -60,26 +60,34 @@ grow_vertical = 2
 
 [node name="ColorPickerBtn" type="ColorPickerButton" parent="CanvasLayer/UI"]
 layout_mode = 0
-offset_left = 530.0
-offset_top = 584.0
-offset_right = 642.0
-offset_bottom = 615.0
+offset_left = 1024.0
+offset_top = 601.0
+offset_right = 1136.0
+offset_bottom = 632.0
 text = "Change Color"
 
 [node name="InviteButton" type="Button" parent="CanvasLayer/UI"]
 layout_mode = 0
 offset_left = 523.0
-offset_top = 476.0
+offset_top = 66.0
 offset_right = 636.0
-offset_bottom = 507.0
+offset_bottom = 97.0
 text = "Invite Friends"
+
+[node name="ReadyButton" type="Button" parent="CanvasLayer/UI"]
+layout_mode = 0
+offset_left = 523.0
+offset_top = 541.0
+offset_right = 636.0
+offset_bottom = 572.0
+text = "Ready!"
 
 [node name="StartGameButton" type="Button" parent="CanvasLayer/UI"]
 layout_mode = 0
 offset_left = 523.0
-offset_top = 511.0
+offset_top = 576.0
 offset_right = 636.0
-offset_bottom = 542.0
+offset_bottom = 607.0
 text = "Start Game
 "
 
@@ -125,5 +133,6 @@ layout_mode = 2
 
 [connection signal="color_changed" from="CanvasLayer/UI/ColorPickerBtn" to="." method="_on_color_picker_btn_color_changed"]
 [connection signal="pressed" from="CanvasLayer/UI/InviteButton" to="." method="_on_invite_friends_pressed"]
+[connection signal="pressed" from="CanvasLayer/UI/ReadyButton" to="." method="_on_ready_button_pressed"]
 [connection signal="pressed" from="CanvasLayer/UI/StartGameButton" to="." method="_on_start_game_pressed"]
 [connection signal="pressed" from="CanvasLayer/LobbyCodeLabel/CopyButton" to="." method="_on_copy_button_pressed"]
