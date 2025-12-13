@@ -33,7 +33,7 @@ metadata/_custom_type_script = "uid://mfp023ur7mgf"
 [sub_resource type="Resource" id="Resource_jw32o"]
 script = ExtResource("3_v1gob")
 enemy_scene = ExtResource("5_v1gob")
-spawn_weight = 100
+spawn_weight = 5
 metadata/_custom_type_script = "uid://mfp023ur7mgf"
 
 [sub_resource type="Resource" id="Resource_vy5pj"]
@@ -76,11 +76,11 @@ spawn_list = Array[ExtResource("3_v1gob")]([SubResource("Resource_50glp"), SubRe
 
 [node name="SampleArena" parent="Arenas/Arena_One" instance=ExtResource("3_kln2b")]
 
-[node name="MultiplayerSpawner" type="MultiplayerSpawner" parent="Arenas/Arena_One"]
+[node name="EnemySpawnerSync" type="MultiplayerSpawner" parent="Arenas/Arena_One"]
 _spawnable_scenes = PackedStringArray("uid://bfo2it1jmjbyh", "uid://dwo5owt1ajxim", "uid://drepnuqy42gmy", "uid://can6v4kxdrge2", "uid://beeu2vt163dw0")
 spawn_path = NodePath("..")
 
-[node name="MultiplayerSpawner" type="MultiplayerSpawner" parent="."]
+[node name="PlayerSpawner" type="MultiplayerSpawner" parent="."]
 _spawnable_scenes = PackedStringArray("uid://bmqc1pownjiil")
 spawn_path = NodePath("../Players")
 
