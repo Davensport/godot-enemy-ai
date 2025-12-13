@@ -11,7 +11,7 @@ grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("1_wyn03")
 
-[node name="Panel" type="Panel" parent="."]
+[node name="MenuContainer" type="Panel" parent="."]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -19,7 +19,7 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 
-[node name="Title" type="Label" parent="Panel"]
+[node name="Title" type="Label" parent="MenuContainer"]
 layout_mode = 1
 anchors_preset = 5
 anchor_left = 0.5
@@ -33,7 +33,7 @@ theme_override_colors/font_color = Color(0.43626904, 0.0022696536, 0.9283585, 1)
 theme_override_font_sizes/font_size = 64
 text = "WIZARD GAME"
 
-[node name="VersionNumber" type="Label" parent="Panel"]
+[node name="VersionNumber" type="Label" parent="MenuContainer"]
 layout_mode = 1
 anchors_preset = 5
 anchor_left = 0.5
@@ -46,7 +46,7 @@ grow_horizontal = 2
 theme_override_font_sizes/font_size = 16
 text = "v0.1.0"
 
-[node name="SteamNameLabel" type="Label" parent="Panel"]
+[node name="SteamNameLabel" type="Label" parent="MenuContainer"]
 layout_mode = 1
 anchors_preset = 5
 anchor_left = 0.5
@@ -59,7 +59,144 @@ grow_horizontal = 2
 theme_override_font_sizes/font_size = 16
 text = "Logged in as:"
 
-[node name="VBoxContainer" type="VBoxContainer" parent="Panel"]
+[node name="MenuRoot" type="VBoxContainer" parent="MenuContainer"]
+custom_minimum_size = Vector2(500, 1)
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -250.0
+offset_top = -66.0
+offset_right = 250.0
+offset_bottom = 105.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Btn_Play" type="Button" parent="MenuContainer/MenuRoot"]
+layout_mode = 2
+text = "Play"
+
+[node name="Btn_Settings" type="Button" parent="MenuContainer/MenuRoot"]
+layout_mode = 2
+text = "Settings"
+
+[node name="Btn_Quit" type="Button" parent="MenuContainer/MenuRoot"]
+layout_mode = 2
+text = "Quit"
+
+[node name="MenuPlaySelection" type="VBoxContainer" parent="MenuContainer"]
+visible = false
+custom_minimum_size = Vector2(500, 1)
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -250.0
+offset_top = -66.0
+offset_right = 250.0
+offset_bottom = 105.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Btn_Host" type="Button" parent="MenuContainer/MenuPlaySelection"]
+layout_mode = 2
+text = "Host Game"
+
+[node name="Btn_Join" type="Button" parent="MenuContainer/MenuPlaySelection"]
+layout_mode = 2
+text = "Join Game"
+
+[node name="Btn_Back_To_Root" type="Button" parent="MenuContainer/MenuPlaySelection"]
+layout_mode = 2
+text = "Main Menu"
+
+[node name="MenuHostSetup" type="VBoxContainer" parent="MenuContainer"]
+visible = false
+custom_minimum_size = Vector2(500, 1)
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -250.0
+offset_top = -66.0
+offset_right = 250.0
+offset_bottom = 105.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Btn_NewGame" type="Button" parent="MenuContainer/MenuHostSetup"]
+layout_mode = 2
+text = "New Game"
+
+[node name="Btn_Continue" type="Button" parent="MenuContainer/MenuHostSetup"]
+layout_mode = 2
+text = "Continue"
+
+[node name="Btn_Back_To_Play" type="Button" parent="MenuContainer/MenuHostSetup"]
+layout_mode = 2
+text = "Back"
+
+[node name="MenuJoinLobby" type="VBoxContainer" parent="MenuContainer"]
+visible = false
+custom_minimum_size = Vector2(500, 1)
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -250.0
+offset_top = -66.0
+offset_right = 250.0
+offset_bottom = 105.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="LobbyIdInput" type="LineEdit" parent="MenuContainer/MenuJoinLobby"]
+layout_mode = 2
+placeholder_text = "Paste Lobby ID Here"
+alignment = 1
+
+[node name="Btn_ConfirmJoin" type="Button" parent="MenuContainer/MenuJoinLobby"]
+layout_mode = 2
+text = "Join"
+
+[node name="Btn_Back_From_Join" type="Button" parent="MenuContainer/MenuJoinLobby"]
+layout_mode = 2
+text = "Back"
+
+[node name="MenuSettings" type="PanelContainer" parent="MenuContainer"]
+visible = false
+custom_minimum_size = Vector2(500, 1)
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -250.0
+offset_top = -66.0
+offset_right = 250.0
+offset_bottom = 105.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="VBoxContainer" type="VBoxContainer" parent="MenuContainer/MenuSettings"]
+layout_mode = 2
+
+[node name="Btn_Back_From_Settings" type="Button" parent="MenuContainer/MenuSettings/VBoxContainer"]
+layout_mode = 2
+size_flags_vertical = 10
+text = "Main Menu"
+
+[node name="VBoxContainer" type="VBoxContainer" parent="MenuContainer"]
+visible = false
 custom_minimum_size = Vector2(500, 1)
 layout_mode = 1
 anchors_preset = 8
@@ -74,27 +211,39 @@ offset_bottom = 70.0
 grow_horizontal = 2
 grow_vertical = 2
 
-[node name="HostButton" type="Button" parent="Panel/VBoxContainer"]
+[node name="HostButton" type="Button" parent="MenuContainer/VBoxContainer"]
 layout_mode = 2
 text = "Host New Game"
 
-[node name="ContinueButton" type="Button" parent="Panel/VBoxContainer"]
+[node name="ContinueButton" type="Button" parent="MenuContainer/VBoxContainer"]
 layout_mode = 2
 text = "Continue Game (Coming Soon)"
 
-[node name="LobbyInput" type="LineEdit" parent="Panel/VBoxContainer"]
+[node name="LobbyInput" type="LineEdit" parent="MenuContainer/VBoxContainer"]
 layout_mode = 2
 placeholder_text = "Paste Lobby Code"
 alignment = 1
 
-[node name="JoinButton" type="Button" parent="Panel/VBoxContainer"]
+[node name="JoinButton" type="Button" parent="MenuContainer/VBoxContainer"]
 layout_mode = 2
 text = "Join Game"
 
-[node name="QuitButton" type="Button" parent="Panel/VBoxContainer"]
+[node name="QuitButton" type="Button" parent="MenuContainer/VBoxContainer"]
 layout_mode = 2
 text = "Quit Game"
 
-[connection signal="pressed" from="Panel/VBoxContainer/HostButton" to="." method="_on_host_button_pressed"]
-[connection signal="pressed" from="Panel/VBoxContainer/JoinButton" to="." method="_on_join_button_pressed"]
-[connection signal="pressed" from="Panel/VBoxContainer/QuitButton" to="." method="_on_quit_button_pressed"]
+[connection signal="pressed" from="MenuContainer/MenuRoot/Btn_Play" to="." method="_on_btn_play_pressed"]
+[connection signal="pressed" from="MenuContainer/MenuRoot/Btn_Settings" to="." method="_on_btn_settings_pressed"]
+[connection signal="pressed" from="MenuContainer/MenuRoot/Btn_Quit" to="." method="_on_btn_quit_pressed"]
+[connection signal="pressed" from="MenuContainer/MenuPlaySelection/Btn_Host" to="." method="_on_btn_host_pressed"]
+[connection signal="pressed" from="MenuContainer/MenuPlaySelection/Btn_Join" to="." method="_on_btn_join_pressed"]
+[connection signal="pressed" from="MenuContainer/MenuPlaySelection/Btn_Back_To_Root" to="." method="_on_btn_back_to_root_pressed"]
+[connection signal="pressed" from="MenuContainer/MenuHostSetup/Btn_NewGame" to="." method="_on_btn_new_game_pressed"]
+[connection signal="pressed" from="MenuContainer/MenuHostSetup/Btn_Continue" to="." method="_on_btn_continue_pressed"]
+[connection signal="pressed" from="MenuContainer/MenuHostSetup/Btn_Back_To_Play" to="." method="_on_btn_back_to_play_pressed"]
+[connection signal="pressed" from="MenuContainer/MenuJoinLobby/Btn_ConfirmJoin" to="." method="_on_btn_confirm_join_pressed"]
+[connection signal="pressed" from="MenuContainer/MenuJoinLobby/Btn_Back_From_Join" to="." method="_on_btn_back_from_join_pressed"]
+[connection signal="pressed" from="MenuContainer/MenuSettings/VBoxContainer/Btn_Back_From_Settings" to="." method="_on_btn_settings_back_pressed"]
+[connection signal="pressed" from="MenuContainer/VBoxContainer/HostButton" to="." method="_on_host_button_pressed"]
+[connection signal="pressed" from="MenuContainer/VBoxContainer/JoinButton" to="." method="_on_join_button_pressed"]
+[connection signal="pressed" from="MenuContainer/VBoxContainer/QuitButton" to="." method="_on_quit_button_pressed"]
