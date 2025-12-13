@@ -54,18 +54,18 @@ func _ready():
 	find_player()
 
 func _physics_process(delta):
+	# 1. CLIENT STOP CHECK
+	# If we are NOT the server, we do absolutely nothing here.
+	# We just let the MultiplayerSynchronizer move us.
+	if not multiplayer.is_server():
+		return
+
+	# 2. SERVER LOGIC (Existing Code)
 	var is_dead = state_machine.current_state and state_machine.current_state.name.to_lower() == "death"
 	
 	if not stats.is_flying and not is_on_floor() and not is_dead:
 		velocity.y -= gravity * delta
 
-	# ONLY SERVER runs AI logic
-	if multiplayer.is_server():
-		_handle_targeting_logic(delta)
-		
-		# Ensure State Machine runs
-		# (You likely need to wrap your StateMachine._physics_process calls in an "is_server()" check too)
-	
 	move_and_slide()
 
 func initialize_from_stats():

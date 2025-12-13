@@ -23,9 +23,12 @@ func _ready():
 		current_state = initial_state
 
 func _physics_process(delta):
+	# CRITICAL: Only the server runs the AI brain!
+	if not multiplayer.is_server():
+		return
+
 	if current_state:
 		current_state.physics_update(delta)
-	#print(current_state)
 
 func _on_transition_requested(from: EnemyState, to_state_name: String):
 	if from != current_state:
