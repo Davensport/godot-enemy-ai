@@ -22,7 +22,6 @@ signal on_player_died
 var is_flying: bool = false
 var _saved_collision_mask: int = 1
 var _current_visual_color: Color = Color.WHITE 
-
 var player_name: String = ""
 
 # --- NETWORK VARIABLES ---
@@ -41,7 +40,6 @@ func _apply_color_to_mesh(color):
 	if not is_node_ready(): await ready
 	_current_visual_color = color
 	
-	# Paint Body
 	if character_mesh:
 		var mat = character_mesh.get_active_material(0)
 		if mat:
@@ -54,7 +52,6 @@ func _apply_color_to_mesh(color):
 			new_mat.albedo_color = color
 			character_mesh.material_override = new_mat
 
-	# Paint Hair
 	if hair_mesh:
 		var hair_mat = hair_mesh.get_active_material(0)
 		if hair_mat:
@@ -77,34 +74,36 @@ func _ready():
 	
 	var this_player_id = str(name).to_int()
 	
-	# 1. Try to find the color in the Global Lobby List
+	# Color Sync Logic
 	if Global.player_colors.has(this_player_id):
 		player_color = Global.player_colors[this_player_id]
 		_apply_color_to_mesh(player_color)
 	
-	# 2. Backup: Client tells Server their color
 	if is_multiplayer_authority():
 		set_color_on_server.rpc(player_color)
 	
 	if is_multiplayer_authority():
-		# --- I AM THE PLAYER (LOCAL) ---
+		# --- LOCAL PLAYER ---
 		Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
 		camera_rig.current = true
 		
-		# Hide self geometry (optional)
 		if character_mesh:
 			character_mesh.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_SHADOWS_ONLY
 		if hair_mesh:
 			hair_mesh.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_SHADOWS_ONLY
 		
+		# UI SETUP
 		if hud_scene:
 			var hud = hud_scene.instantiate()
 			add_child(hud)
+			# Important: We pass 'self' so the HUD can find our HealthComponent
 			if hud.has_method("setup_ui"):
 				hud.setup_ui(self)
+			else:
+				push_error("HUD Scene is missing 'setup_ui' function!")
 				
 	else:
-		# --- I AM A PUPPET ---
+		# --- PUPPET ---
 		camera_rig.current = false
 		set_physics_process(false)
 		set_process(true)
@@ -116,9 +115,11 @@ func _ready():
 		
 		_apply_color_to_mesh(player_color)
 
-	# LISTEN FOR DEATH (Server Side)
+	# LISTEN FOR DEATH (Server Side & Client Side)
 	if health:
-		health.on_death.connect(_on_death_logic)
+		# Only the server should drive the death logic via signal initially
+		if multiplayer.is_server():
+			health.on_death.connect(_on_death_logic)
 
 # --- PROCESS LOOP ---
 
@@ -166,42 +167,58 @@ func _physics_process(delta):
 
 # --- DAMAGE AND DEATH (NETWORKED) ---
 
-# 1. Enemy calls this on the SERVER
+# 1. CALLED BY ENEMY ON SERVER
 func take_damage(amount):
 	if multiplayer.is_server():
-		# Apply damage to the server component
+		print("Server: Player ", name, " taking ", amount, " damage.")
 		health.take_damage(amount)
 		
-		# FORCE SYNC: Tell the clients what the new health is so their UI updates
-		# Note: We assume your health component has 'current_health' and 'max_health'
+		# Send new values to everyone
 		_rpc_update_health.rpc(health.current_health, health.max_health)
 
-# 2. All Clients receive this
+# 2. RECEIVED BY EVERYONE (Including Client Owner)
 @rpc("call_local", "reliable")
 func _rpc_update_health(new_health, new_max):
+	print("Client: Received Health Update: ", new_health, "/", new_max)
+	
 	if health:
-		# Update local variables
 		health.current_health = new_health
 		health.max_health = new_max
 		
-		# Force the "on_health_changed" signal so the HUD updates
+		# Force the UI to update
+		# If your UI is connected to 'on_health_changed', this makes the bar move.
 		health.on_health_changed.emit(new_health, new_max)
+		
+		# SAFETY CHECK: If we are effectively dead, trigger death locally too
+		# This catches cases where the 'Death' packet might be delayed
+		if new_health <= 0:
+			# We don't call _on_death_logic here to avoid double-triggers,
+			# we let the server send the official death command below.
+			pass
 
-# 3. Server detects death -> Tells everyone to play animation
+# 3. SERVER DETECTS DEATH -> COMMANDS DEATH
 func _on_death_logic():
 	if multiplayer.is_server():
+		print("Server: Player ", name, " has died. Sending RPC.")
 		_rpc_player_died.rpc()
 
-# 4. Everyone executes death logic
+# 4. EVERYONE EXECUTES DEATH
 @rpc("call_local", "reliable")
 func _rpc_player_died():
+	print("Client: executing death logic for ", name)
+	
 	on_player_died.emit()
+	
+	# STOP MOVEMENT
 	set_physics_process(false)
+	velocity = Vector3.ZERO
 	
-	# Play Animation
+	# ANIMATION
 	AnimTree["parameters/LifeState/transition_request"] = "dead"
-	AnimPlayer.stop() # Sometimes helps transition trigger cleanly
+	AnimPlayer.stop()
 	
-	# Only emit global signal if local player (optional, prevents double signals)
+	# GLOBAL SIGNAL (Only for the local player who owns this character)
+	# This triggers the "You Died" screen
 	if is_multiplayer_authority():
+		print("Client: Emitting Global SignalBus.player_died")
 		SignalBus.player_died.emit()
