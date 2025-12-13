@@ -38,61 +38,63 @@ func _ready():
 	Steam.lobby_joined.connect(_on_lobby_joined)
 	Steam.lobby_chat_update.connect(_on_lobby_chat_update)
 	Steam.persona_state_change.connect(_on_persona_change)
+	
+	# --- NEW: LISTEN FOR CONNECTIONS ---
+	multiplayer.peer_connected.connect(_on_server_peer_connected)
 
 func _process(_delta):
 	Steam.run_callbacks()
 
 # ==============================================================================
-# CUSTOMIZATION SYNC (FIXED)
+# SYNC LOGIC FOR LATE JOINERS (NEW)
+# ==============================================================================
+func _on_server_peer_connected(id):
+	# If I am the server, I hold the "Truth" of what everyone looks like.
+	# When a new player 'id' joins, I send them the current list.
+	if multiplayer.is_server():
+		_rpc_full_sync.rpc_id(id, player_customization)
+
+@rpc("authority", "call_remote", "reliable")
+func _rpc_full_sync(server_list: Dictionary):
+	# Client receives the full list and updates their local data
+	player_customization = server_list
+	customization_updated.emit()
+
+# ==============================================================================
+# CUSTOMIZATION UPDATES
 # ==============================================================================
 
-# 1. CLIENT CALLS THIS (Request)
+# 1. CLIENT CALLS THIS
 func update_customization(part_name: String, color: Variant):
-	# Send request to server (ID 1)
 	_server_receive_customization.rpc_id(1, part_name, color)
 
-# 2. SERVER RECEIVES REQUEST
+# 2. SERVER RECEIVES
 @rpc("any_peer", "call_local", "reliable")
 func _server_receive_customization(part_name: String, color: Variant):
-	# Security: Only the Server runs this
 	if not multiplayer.is_server(): return
-	
 	var sender_id = multiplayer.get_remote_sender_id()
-	
-	# Broadcast the approved change to EVERYONE (including the sender)
 	_broadcast_customization.rpc(sender_id, part_name, color)
 
-# 3. EVERYONE UPDATES THEIR LOCAL DATA
+# 3. BROADCAST TO EVERYONE
 @rpc("call_local", "reliable")
 func _broadcast_customization(player_id: int, part_name: String, color: Variant):
-	# If this player doesn't have an entry yet, create one with NULL defaults
 	if not player_customization.has(player_id):
 		player_customization[player_id] = {
-			"Tunic": null, # FIX: Default to Null (Original Mesh)
+			"Tunic": null,
 			"Skin": null, 
 			"Hair": null
 		}
 	
-	# Update the specific part
 	player_customization[player_id][part_name] = color
 	
 	# Legacy Support
 	if part_name == "Tunic" and color != null:
 		player_colors[player_id] = color
 	
-	# Notify the Lobby to repaint
 	customization_updated.emit()
 
-
-# 4. LEGACY COLOR SUPPORT
-@rpc("any_peer", "call_local", "reliable")
-func register_player_color(new_color):
-	var sender_id = multiplayer.get_remote_sender_id()
-	# Forward to new system
-	update_customization("Tunic", new_color)
-
 # ==============================================================================
-# HOSTING / JOINING (Unchanged)
+# HOSTING / JOINING
 # ==============================================================================
 func become_host() -> void:
 	Steam.createLobby(Steam.LOBBY_TYPE_PUBLIC, MAX_PLAYERS)
@@ -145,7 +147,7 @@ func start_game():
 	get_tree().current_scene = scene
 
 # ==============================================================================
-# SPAWNING LOGIC (Unchanged)
+# SPAWNING LOGIC
 # ==============================================================================
 @rpc("any_peer", "call_local", "reliable")
 func player_loaded_level():
@@ -185,7 +187,7 @@ func server_spawn_players():
 		index += 1
 
 # ==============================================================================
-# HELPER FUNCTIONS (Unchanged)
+# HELPER FUNCTIONS
 # ==============================================================================
 func get_lobby_members():
 	var members = []
