@@ -101,13 +101,20 @@ func _update_lobby_nodes():
 			if index < podiums.size():
 				child.position = podiums[index].position
 				
-				# --- OLD: RELIED ON PODIUM ROTATION ---
-				# child.rotation = podiums[index].rotation
+				# --- NEW ROTATION LOGIC ---
+				# 1. Find where the camera is
+				var look_target = main_camera.global_position
 				
-				# --- NEW: FORCE THEM TO FACE FORWARD ---
-				# This forces Rotation Y to 0 (or 180).
-				# Try Vector3.ZERO first. If they face backwards, change it to Vector3(0, PI, 0).
-				child.rotation = Vector3.ZERO
+				# 2. Lock the height so they don't tilt their heads up/down
+				look_target.y = child.global_position.y 
+				
+				# 3. Force them to look at that point
+				child.look_at(look_target, Vector3.UP)
+				
+				# 4. (OPTIONAL) FIX BACKWARDS CHARACTERS
+				# Depending on how your .glb was imported, 'look_at' might make them face backwards.
+				# If they turn their backs to you, UNCOMMENT the line below:
+				# child.rotate_y(deg_to_rad(180))
 			
 			# B. Apply Global Customization
 			if id in Global.player_customization:

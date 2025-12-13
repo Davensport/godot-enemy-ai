@@ -62,10 +62,12 @@ transform = Transform3D(1, -7.105428e-14, -7.1525596e-07, -7.152558e-07, 3.57627
 [node name="ReadyIcon" type="Label3D" parent="."]
 transform = Transform3D(-1, 0, 8.742278e-08, 0, 1, 0, -8.742278e-08, 0, -1, 0, 2.6139507, 0)
 visible = false
+billboard = 1
 text = "READY"
 
 [node name="Label3D" type="Label3D" parent="."]
 transform = Transform3D(-1, 0, 8.742278e-08, 0, 1, 0, -8.742278e-08, 0, -1, 0, 2.4, 0)
+billboard = 1
 text = "Username"
 
 [node name="MultiplayerSynchronizer" type="MultiplayerSynchronizer" parent="."]
