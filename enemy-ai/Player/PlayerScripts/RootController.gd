@@ -238,39 +238,32 @@ func _rpc_request_respawn():
 # C. ALL CLIENTS: Wake up and MOVE
 @rpc("any_peer", "call_local", "reliable")
 func _rpc_perform_respawn(spawn_pos: Vector3):
-	# Security check
 	if multiplayer.get_remote_sender_id() != 1: return
 
-	# 1. TELEPORT (With Physics Safety)
-	# We disable physics for a split second to allow the teleport to "snap"
-	set_physics_process(false)
+	# 1. TELEPORT
 	global_position = spawn_pos
 	velocity = Vector3.ZERO
 	
-	# Wait one physics frame to let the engine accept the new position
-	await get_tree().physics_frame
-	
-	# 2. Re-enable Physics
+	# 2. ENABLE PHYSICS
 	set_physics_process(true)
 	
-	# 3. Reset Animation
-	# OLD (Causing Error):
-# AnimTree["parameters/LifeState/transition_request"] = "alive" 
+	# 3. RESET ANIMATION
+# Your tree uses "state_0" for the alive/idle state.
+	AnimTree["parameters/LifeState/transition_request"] = "state_0"
 
-# NEW (Safe Fallback):
-# We try to force the state machine to travel back to Idle directly.
-	var playback = AnimTree.get("parameters/Motion/playback")
-	if playback: 
-		playback.start("Idle")
+## (Optional Backup) Force the Motion machine to start
+#var playback = AnimTree.get("parameters/Motion/playback")
+#if playback:
+	#playback.start("Idle")
+		#playback.start("Idle")
+		
+	# Option C: Just in case, force the AnimationPlayer itself
+	AnimPlayer.play("Idle")
 	
-# If you are using a specific "LifeState" transition, try setting it to "default" or index 0
-# AnimTree["parameters/LifeState/transition_request"] = "default"
-	
-	# 4. Re-assert Camera
+	# 4. CAMERA
 	if is_multiplayer_authority():
 		camera_rig.current = true
 		
-	# 5. DEBUG PRINT (To confirm it worked)
 	print("Respawned at: ", global_position)
 	
 func _exit_tree():
