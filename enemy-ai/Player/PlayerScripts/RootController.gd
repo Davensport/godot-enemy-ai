@@ -21,6 +21,7 @@ signal on_player_died
 # --- STATE ---
 var is_flying: bool = false
 var _saved_collision_mask: int = 1
+var _saved_collision_layer: int = 1  # <--- NEW VARIABLE
 var _current_visual_color: Color = Color.WHITE 
 var player_name: String = ""
 
@@ -71,6 +72,10 @@ func _enter_tree():
 
 func _ready():
 	await get_tree().process_frame
+	
+	# Save our collision setup so we can restore it later
+	_saved_collision_mask = collision_mask
+	_saved_collision_layer = collision_layer # <--- SAVE IT HERE
 	
 	var this_player_id = str(name).to_int()
 	
@@ -194,20 +199,22 @@ func _on_death_logic():
 # 4. EVERYONE EXECUTES DEATH
 @rpc("any_peer", "call_local", "reliable")
 func _rpc_player_died():
-	# Security check
 	if multiplayer.get_remote_sender_id() != 1: return
 
 	on_player_died.emit()
 	
-	# STOP MOVEMENT
 	set_physics_process(false)
 	velocity = Vector3.ZERO
 	
-	# ANIMATION
+	# --- NEW: GHOST MODE ---
+	# Turn off collision so enemies stop seeing/attacking us
+	collision_layer = 0
+	# Optional: Turn off mask so projectiles pass through us
+	# collision_mask = 0 
+	
 	AnimTree["parameters/LifeState/transition_request"] = "dead"
 	AnimPlayer.stop()
 	
-	# GLOBAL SIGNAL (Local player only)
 	if is_multiplayer_authority():
 		SignalBus.player_died.emit()
 
@@ -254,23 +261,20 @@ func _rpc_request_respawn():
 func _rpc_perform_respawn(spawn_pos: Vector3):
 	if multiplayer.get_remote_sender_id() != 1: return
 
-	# 1. RESET VISIBILITY (Crucial!)
-	# We turn the meshes back on. 
-	# Note: This respects the "Shadows Only" setting for the local player automatically.
 	if character_mesh: character_mesh.visible = true
 	if hair_mesh: hair_mesh.visible = true
 
-	# 2. TELEPORT
 	global_position = spawn_pos
 	velocity = Vector3.ZERO
 	
-	# 3. ENABLE PHYSICS
 	set_physics_process(true)
 	
-	# 4. RESET ANIMATION
+	# --- NEW: RESTORE COLLISION ---
+	collision_layer = _saved_collision_layer
+	# collision_mask = _saved_collision_mask # If you disabled mask above, restore it here
+	
 	AnimTree["parameters/LifeState/transition_request"] = "state_0"
 	AnimPlayer.play("Idle")
 	
-	# 5. CAMERA
 	if is_multiplayer_authority():
 		camera_rig.current = true
