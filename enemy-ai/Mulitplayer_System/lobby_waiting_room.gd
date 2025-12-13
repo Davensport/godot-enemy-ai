@@ -9,8 +9,8 @@ extends Node3D
 
 # --- UI RESOURCES ---
 @onready var color_picker = $CanvasLayer/UI/ColorPickerBtn
-@onready var lobby_id_label = $LobbyCodeLabel
-@onready var copy_button = $LobbyCodeLabel/CopyButton
+@onready var lobby_id_label = $CanvasLayer/LobbyCodeLabel
+@onready var copy_button = $CanvasLayer/LobbyCodeLabel/CopyButton
 
 func _ready():
 	# 1. Update the Lobby ID Text

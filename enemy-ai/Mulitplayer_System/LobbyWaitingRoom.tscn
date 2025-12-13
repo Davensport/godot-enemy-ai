@@ -27,41 +27,6 @@ environment = SubResource("Environment_4dxrl")
 transform = Transform3D(-0.8660254, -0.43301278, 0.25, 0, 0.49999997, 0.86602545, -0.50000006, 0.75, -0.43301266, 0, 0, 0)
 shadow_enabled = true
 
-[node name="LobbyCodeLabel" type="Label" parent="."]
-anchors_preset = 5
-anchor_left = 0.5
-anchor_right = 0.5
-offset_left = -20.0
-offset_right = 20.0
-offset_bottom = 23.0
-grow_horizontal = 2
-text = "Lobby ID:"
-
-[node name="CopyButton" type="Button" parent="LobbyCodeLabel"]
-layout_mode = 0
-offset_left = -3.5
-offset_top = 44.0
-offset_right = 86.5
-offset_bottom = 75.0
-text = "Copy Code"
-
-[node name="VBoxContainer" type="VBoxContainer" parent="LobbyCodeLabel"]
-layout_mode = 1
-anchors_preset = 8
-anchor_left = 0.5
-anchor_top = 0.5
-anchor_right = 0.5
-anchor_bottom = 0.5
-offset_left = -20.0
-offset_top = 147.5
-offset_right = 20.0
-offset_bottom = 187.5
-grow_horizontal = 2
-grow_vertical = 2
-
-[node name="PlayerList" type="VBoxContainer" parent="LobbyCodeLabel/VBoxContainer"]
-layout_mode = 2
-
 [node name="Camera3D" type="Camera3D" parent="."]
 transform = Transform3D(-1, 0, -1.192093e-07, 0, 1, 0, 1.192093e-07, 0, -1, -0.2, 2.4, -3.9999995)
 
@@ -118,7 +83,42 @@ offset_bottom = 542.0
 text = "Start Game
 "
 
-[connection signal="pressed" from="LobbyCodeLabel/CopyButton" to="." method="_on_copy_button_pressed"]
+[node name="LobbyCodeLabel" type="Label" parent="CanvasLayer"]
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -36.5
+offset_right = 36.5
+offset_bottom = 23.0
+grow_horizontal = 2
+text = "Lobby ID:"
+
+[node name="CopyButton" type="Button" parent="CanvasLayer/LobbyCodeLabel"]
+layout_mode = 0
+offset_left = -3.5
+offset_top = 44.0
+offset_right = 86.5
+offset_bottom = 75.0
+text = "Copy Code"
+
+[node name="VBoxContainer" type="VBoxContainer" parent="CanvasLayer/LobbyCodeLabel"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -20.0
+offset_top = 147.5
+offset_right = 20.0
+offset_bottom = 187.5
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="PlayerList" type="VBoxContainer" parent="CanvasLayer/LobbyCodeLabel/VBoxContainer"]
+layout_mode = 2
+
 [connection signal="color_changed" from="CanvasLayer/UI/ColorPickerBtn" to="." method="_on_color_picker_btn_color_changed"]
 [connection signal="pressed" from="CanvasLayer/UI/InviteButton" to="." method="_on_invite_friends_pressed"]
 [connection signal="pressed" from="CanvasLayer/UI/StartGameButton" to="." method="_on_start_game_pressed"]
+[connection signal="pressed" from="CanvasLayer/LobbyCodeLabel/CopyButton" to="." method="_on_copy_button_pressed"]
