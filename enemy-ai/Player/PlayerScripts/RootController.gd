@@ -211,6 +211,20 @@ func _rpc_player_died():
 	if is_multiplayer_authority():
 		SignalBus.player_died.emit()
 
+	# --- NEW: BODY DISAPPEARANCE LOGIC ---
+	# Wait 2 seconds (or however long you want the body to linger)
+	await get_tree().create_timer(2.0).timeout
+	
+	# SAFETY CHECK: 
+	# If we respawned quickly while the timer was running, 
+	# we don't want to turn invisible while alive!
+	if health.current_health > 0:
+		return
+		
+	# Hide the visual meshes
+	if character_mesh: character_mesh.visible = false
+	if hair_mesh: hair_mesh.visible = false
+
 # --- RESPAWN LOGIC ---
 
 # A. CLIENT: Triggered by UI Button
@@ -240,20 +254,23 @@ func _rpc_request_respawn():
 func _rpc_perform_respawn(spawn_pos: Vector3):
 	if multiplayer.get_remote_sender_id() != 1: return
 
-	# 1. TELEPORT
+	# 1. RESET VISIBILITY (Crucial!)
+	# We turn the meshes back on. 
+	# Note: This respects the "Shadows Only" setting for the local player automatically.
+	if character_mesh: character_mesh.visible = true
+	if hair_mesh: hair_mesh.visible = true
+
+	# 2. TELEPORT
 	global_position = spawn_pos
 	velocity = Vector3.ZERO
 	
-	# 2. ENABLE PHYSICS
+	# 3. ENABLE PHYSICS
 	set_physics_process(true)
 	
-	# 3. RESET ANIMATION
-	# Using "state_0" because that is the name of your Alive state in the AnimationTree
+	# 4. RESET ANIMATION
 	AnimTree["parameters/LifeState/transition_request"] = "state_0"
-	
-	# Backup: Ensure the base AnimationPlayer is also reset
 	AnimPlayer.play("Idle")
 	
-	# 4. CAMERA
+	# 5. CAMERA
 	if is_multiplayer_authority():
 		camera_rig.current = true
