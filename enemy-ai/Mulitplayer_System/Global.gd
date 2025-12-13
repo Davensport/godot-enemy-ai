@@ -55,8 +55,8 @@ func register_player_color(new_color):
 func become_host() -> void:
 	Steam.createLobby(Steam.LOBBY_TYPE_PUBLIC, MAX_PLAYERS)
 
-func _on_lobby_created(connect: int, lobby_id: int):
-	if connect == 1:
+func _on_lobby_created(_connect: int, lobby_id: int):
+	if _connect == 1:
 		_hosted_lobby_id = lobby_id
 		Steam.setLobbyJoinable(_hosted_lobby_id, true)
 		Steam.setLobbyData(_hosted_lobby_id, "name", LOBBY_NAME)
@@ -79,7 +79,7 @@ func _on_lobby_joined(lobby: int, _permissions: int, _locked: bool, response: in
 		call_deferred("_switch_to_lobby_menu")
 		lobby_joined.emit(lobby)
 
-func _on_join_requested(lobby_id: int, friend_id: int):
+func _on_join_requested(lobby_id: int, _friend_id: int):
 	join_game(lobby_id)
 
 func connect_socket(steam_id: int):
