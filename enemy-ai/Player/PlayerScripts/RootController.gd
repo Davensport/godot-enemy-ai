@@ -87,7 +87,7 @@ func _ready():
 		Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
 		camera_rig.current = true
 		
-		# Shadow settings
+		# Shadow settings (Hide own shadow for better view)
 		if character_mesh:
 			character_mesh.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_SHADOWS_ONLY
 		if hair_mesh:
@@ -211,7 +211,7 @@ func _rpc_player_died():
 	if is_multiplayer_authority():
 		SignalBus.player_died.emit()
 
-# --- RESPAWN LOGIC (UPDATED) ---
+# --- RESPAWN LOGIC ---
 
 # A. CLIENT: Triggered by UI Button
 func _on_ui_respawn_requested():
@@ -248,30 +248,12 @@ func _rpc_perform_respawn(spawn_pos: Vector3):
 	set_physics_process(true)
 	
 	# 3. RESET ANIMATION
-# Your tree uses "state_0" for the alive/idle state.
+	# Using "state_0" because that is the name of your Alive state in the AnimationTree
 	AnimTree["parameters/LifeState/transition_request"] = "state_0"
-
-## (Optional Backup) Force the Motion machine to start
-#var playback = AnimTree.get("parameters/Motion/playback")
-#if playback:
-	#playback.start("Idle")
-		#playback.start("Idle")
-		
-	# Option C: Just in case, force the AnimationPlayer itself
+	
+	# Backup: Ensure the base AnimationPlayer is also reset
 	AnimPlayer.play("Idle")
 	
 	# 4. CAMERA
 	if is_multiplayer_authority():
 		camera_rig.current = true
-		
-	print("Respawned at: ", global_position)
-	
-func _exit_tree():
-	# If the game is just closing, ignore this.
-	if not is_inside_tree(): return
-	
-	print("!!!!!!!!!!!! ALERT !!!!!!!!!!!!")
-	print("PLAYER ", name, " IS BEING DELETED!")
-	print("DELETION CAUSED BY SCRIPT:")
-	print_stack() # <--- This prints the exact line number of the killer
-	print("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
