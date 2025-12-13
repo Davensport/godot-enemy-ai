@@ -26,7 +26,6 @@ var _current_visual_color: Color = Color.WHITE
 var player_name: String = ""
 
 # --- NETWORK VARIABLES ---
-# We keep the RPC logic just in case, but the Global check is the main fix.
 @export var player_color: Color = Color.WHITE:
 	set(new_color):
 		player_color = new_color
@@ -40,7 +39,6 @@ func set_color_on_server(color):
 # --- PAINTER ---
 func _apply_color_to_mesh(color):
 	if not is_node_ready(): await ready
-	
 	_current_visual_color = color
 	
 	# Paint Body
@@ -71,17 +69,12 @@ func _enter_tree():
 	var my_id = str(name).to_int()
 	set_multiplayer_authority(my_id)
 	
-	# --- NEW: Grant Authority to Components ---
-	# This ensures the Combat System allows you to send "Attack" RPCs
 	for child in $Components.get_children():
 		child.set_multiplayer_authority(my_id)
 
 func _ready():
 	await get_tree().process_frame
 	
-	# --- THE FIX: GLOBAL LOOKUP FOR EVERYONE ---
-	# We do this for ALL players, not just our own.
-	# "Who is this player? Let's check the list."
 	var this_player_id = str(name).to_int()
 	
 	# 1. Try to find the color in the Global Lobby List
@@ -89,17 +82,16 @@ func _ready():
 		player_color = Global.player_colors[this_player_id]
 		_apply_color_to_mesh(player_color)
 	
-	# 2. If I am the Client owner, ensure the Server knows my color too (Backup)
+	# 2. Backup: Client tells Server their color
 	if is_multiplayer_authority():
 		set_color_on_server.rpc(player_color)
-	# -------------------------------------------
 	
 	if is_multiplayer_authority():
 		# --- I AM THE PLAYER (LOCAL) ---
 		Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
 		camera_rig.current = true
 		
-		# Hide self
+		# Hide self geometry (optional)
 		if character_mesh:
 			character_mesh.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_SHADOWS_ONLY
 		if hair_mesh:
@@ -117,22 +109,20 @@ func _ready():
 		set_physics_process(false)
 		set_process(true)
 		
-		# Ensure visible
 		if character_mesh:
 			character_mesh.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_ON
 		if hair_mesh:
 			hair_mesh.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_ON
 		
-		# Just in case the Global check failed, apply whatever variable we have
 		_apply_color_to_mesh(player_color)
 
+	# LISTEN FOR DEATH (Server Side)
 	if health:
 		health.on_death.connect(_on_death_logic)
 
 # --- PROCESS LOOP ---
 
 func _process(_delta):
-	# Watchdog: If RPC comes in later, update the mesh
 	if player_color != _current_visual_color:
 		_apply_color_to_mesh(player_color)
 
@@ -174,15 +164,44 @@ func _physics_process(delta):
 		movement.handle_movement(delta)
 	move_and_slide()
 
-# --- DEATH ---
+# --- DAMAGE AND DEATH (NETWORKED) ---
 
+# 1. Enemy calls this on the SERVER
 func take_damage(amount):
 	if multiplayer.is_server():
+		# Apply damage to the server component
 		health.take_damage(amount)
+		
+		# FORCE SYNC: Tell the clients what the new health is so their UI updates
+		# Note: We assume your health component has 'current_health' and 'max_health'
+		_rpc_update_health.rpc(health.current_health, health.max_health)
 
+# 2. All Clients receive this
+@rpc("call_local", "reliable")
+func _rpc_update_health(new_health, new_max):
+	if health:
+		# Update local variables
+		health.current_health = new_health
+		health.max_health = new_max
+		
+		# Force the "on_health_changed" signal so the HUD updates
+		health.on_health_changed.emit(new_health, new_max)
+
+# 3. Server detects death -> Tells everyone to play animation
 func _on_death_logic():
+	if multiplayer.is_server():
+		_rpc_player_died.rpc()
+
+# 4. Everyone executes death logic
+@rpc("call_local", "reliable")
+func _rpc_player_died():
 	on_player_died.emit()
 	set_physics_process(false)
+	
+	# Play Animation
 	AnimTree["parameters/LifeState/transition_request"] = "dead"
-	AnimPlayer.stop()
-	SignalBus.player_died.emit()
+	AnimPlayer.stop() # Sometimes helps transition trigger cleanly
+	
+	# Only emit global signal if local player (optional, prevents double signals)
+	if is_multiplayer_authority():
+		SignalBus.player_died.emit()

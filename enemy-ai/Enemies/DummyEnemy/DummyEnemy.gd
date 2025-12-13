@@ -201,9 +201,9 @@ func _on_attack_visuals():
 	if multiplayer.is_server():
 		_rpc_attack_visuals.rpc()
 	
-	# Logic (Damage) still happens here
-	if stats:
-		SignalBus.enemy_attack_occurred.emit(self, stats.attack_damage)
+	## Logic (Damage) still happens here
+	#if stats:
+		#SignalBus.enemy_attack_occurred.emit(self, stats.attack_damage)
 
 @rpc("call_local", "reliable")
 func _rpc_attack_visuals():
