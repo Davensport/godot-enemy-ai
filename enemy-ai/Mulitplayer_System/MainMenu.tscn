@@ -19,6 +19,46 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 
+[node name="Title" type="Label" parent="Panel"]
+layout_mode = 1
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -223.5
+offset_top = 65.0
+offset_right = 223.5
+offset_bottom = 153.0
+grow_horizontal = 2
+theme_override_colors/font_color = Color(0.43626904, 0.0022696536, 0.9283585, 1)
+theme_override_font_sizes/font_size = 64
+text = "WIZARD GAME"
+
+[node name="VersionNumber" type="Label" parent="Panel"]
+layout_mode = 1
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = 511.0
+offset_top = 610.0
+offset_right = 958.0
+offset_bottom = 698.0
+grow_horizontal = 2
+theme_override_font_sizes/font_size = 16
+text = "v0.1.0"
+
+[node name="SteamNameLabel" type="Label" parent="Panel"]
+layout_mode = 1
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -567.0
+offset_top = 12.0
+offset_right = -120.0
+offset_bottom = 100.0
+grow_horizontal = 2
+theme_override_font_sizes/font_size = 16
+text = "Logged in as:"
+
 [node name="VBoxContainer" type="VBoxContainer" parent="Panel"]
 custom_minimum_size = Vector2(500, 1)
 layout_mode = 1
@@ -27,16 +67,20 @@ anchor_left = 0.5
 anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
-offset_left = -47.0
-offset_top = -50.5
-offset_right = 47.0
-offset_bottom = 50.5
+offset_left = -250.0
+offset_top = -31.0
+offset_right = 250.0
+offset_bottom = 70.0
 grow_horizontal = 2
 grow_vertical = 2
 
 [node name="HostButton" type="Button" parent="Panel/VBoxContainer"]
 layout_mode = 2
-text = "Host Game"
+text = "Host New Game"
+
+[node name="ContinueButton" type="Button" parent="Panel/VBoxContainer"]
+layout_mode = 2
+text = "Continue Game (Coming Soon)"
 
 [node name="LobbyInput" type="LineEdit" parent="Panel/VBoxContainer"]
 layout_mode = 2
@@ -47,5 +91,10 @@ alignment = 1
 layout_mode = 2
 text = "Join Game"
 
+[node name="QuitButton" type="Button" parent="Panel/VBoxContainer"]
+layout_mode = 2
+text = "Quit Game"
+
 [connection signal="pressed" from="Panel/VBoxContainer/HostButton" to="." method="_on_host_button_pressed"]
 [connection signal="pressed" from="Panel/VBoxContainer/JoinButton" to="." method="_on_join_button_pressed"]
+[connection signal="pressed" from="Panel/VBoxContainer/QuitButton" to="." method="_on_quit_button_pressed"]

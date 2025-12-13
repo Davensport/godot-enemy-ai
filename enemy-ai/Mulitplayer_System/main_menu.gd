@@ -2,6 +2,17 @@ extends Control
 
 # Reference the text box you just added
 @onready var lobby_input = $Panel/VBoxContainer/LobbyInput 
+@onready var steam_name_label: Label = $Panel/SteamNameLabel
+
+func _ready():
+	# Check if Steam is running
+	if Steam.isSteamRunning():
+		var name = Steam.getPersonaName()
+		steam_name_label.text = "Logged in as: " + str(name)
+	else:
+		steam_name_label.text = "Steam not running (Debug Mode)"
+		steam_name_label.modulate = Color.RED # Make it red to warn you!
+
 
 func _on_host_button_pressed():
 	Global.become_host()
