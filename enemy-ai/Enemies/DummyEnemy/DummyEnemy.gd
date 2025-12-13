@@ -61,6 +61,18 @@ func _physics_process(delta):
 		return
 
 	# 2. SERVER LOGIC
+	
+	# --- NEW: INSTANTLY DROP DEAD TARGETS ---
+	if is_instance_valid(player_target):
+		var hp = player_target.get("health")
+		# If target is dead OR invisible
+		if (hp and hp.current_health <= 0) or player_target.collision_layer == 0:
+			player_target = null
+			if movement_component: movement_component.set_target(null)
+			if combat_component: combat_component.set_target(null)
+			# Force a new search immediately
+			target_check_timer = 0.0
+	# ----------------------------------------
 	# A. Periodic Targeting Check (Find closest player)
 	target_check_timer -= delta
 	if target_check_timer <= 0.0:
@@ -161,6 +173,7 @@ func rotate_smoothly(target_direction: Vector3, delta: float):
 	rotation.y = lerp_angle(current_y, target_y, turn_speed * delta)
 
 # --- REVISED TARGETING LOGIC (SERVER ONLY) ---
+# --- REVISED TARGETING LOGIC (SERVER ONLY) ---
 func find_player():
 	if not multiplayer.is_server():
 		return
@@ -172,7 +185,18 @@ func find_player():
 	for player in all_players:
 		if not is_instance_valid(player):
 			continue
+		
+		# --- CHECK 1: Is the player dead? ---
+		# We check the health component on the player
+		var p_health = player.get("health")
+		if p_health and p_health.current_health <= 0:
+			continue # Skip this corpse
 			
+		# --- CHECK 2: Is the player a ghost? ---
+		# We set collision_layer to 0 in RootController when they die.
+		if player.collision_layer == 0:
+			continue # Skip invisible players
+
 		var dist = global_position.distance_to(player.global_position)
 		if dist < closest_dist:
 			closest_dist = dist
