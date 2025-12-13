@@ -1,6 +1,7 @@
-[gd_scene load_steps=5 format=3 uid="uid://bbwdmoivbt1hj"]
+[gd_scene load_steps=6 format=3 uid="uid://bbwdmoivbt1hj"]
 
 [ext_resource type="Script" uid="uid://281i8ssm8ifj" path="res://Mulitplayer_System/lobby_waiting_room.gd" id="1_rfwfh"]
+[ext_resource type="PackedScene" uid="uid://d2kq4i7lld0p6" path="res://Mulitplayer_System/lobby_customizer.tscn" id="2_fiu7e"]
 
 [sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_sdebt"]
 sky_top_color = Color(0, 0.57916117, 0.933266, 1)
@@ -59,6 +60,7 @@ grow_horizontal = 2
 grow_vertical = 2
 
 [node name="ColorPickerBtn" type="ColorPickerButton" parent="CanvasLayer/UI"]
+visible = false
 layout_mode = 0
 offset_left = 1024.0
 offset_top = 601.0
@@ -90,6 +92,10 @@ offset_right = 636.0
 offset_bottom = 607.0
 text = "Start Game
 "
+
+[node name="LobbyCustomizer" parent="CanvasLayer/UI" instance=ExtResource("2_fiu7e")]
+visible = false
+layout_mode = 0
 
 [node name="LobbyCodeLabel" type="Label" parent="CanvasLayer"]
 anchors_preset = 5

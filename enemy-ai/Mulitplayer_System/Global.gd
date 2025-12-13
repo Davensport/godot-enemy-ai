@@ -3,6 +3,7 @@ extends Node
 # --- SIGNALS ---
 signal lobby_joined(lobby_id)
 signal player_list_updated
+signal customization_updated # <--- NEW
 
 # --- CONFIGURATION ---
 const LOBBY_NAME = "DAVENSPORT TEST"
@@ -14,7 +15,6 @@ const LOBBY_MENU_SCENE = "res://Mulitplayer_System/LobbyWaitingRoom.tscn"
 const GAME_SCENE = "res://scenes/main.tscn"
 
 # --- RESOURCES ---
-# Ensure this points to your ACTUAL Player.tscn
 var multiplayer_scene = preload("res://Player/MainPlayerScn/Player.tscn")
 
 # --- VARIABLES ---
@@ -22,12 +22,17 @@ var _hosted_lobby_id = 0
 var steam_peer = SteamMultiplayerPeer.new()
 var players_loaded = 0
 
-# --- COLOR SYSTEM ---
-# This was missing! It stores YOUR local color choice.
-var my_player_color = Color.WHITE 
+# --- GLOBAL STATE (NEW) ---
+var player_name: String = "Guest"         # Stores local player name
+var is_loading_from_save: bool = false    # For Crash Recovery logic later
 
-# This stores EVERYONE'S color choices (PeerID : Color)
+# --- CUSTOMIZATION DATA ---
+# The new system (Stores Tunic, Skin, Hair)
+var player_customization = {} 
+
+# Legacy system (Kept to prevent crashes if old scripts reference it)
 var player_colors = {} 
+var my_player_color = Color.WHITE
 
 func _ready():
 	Steam.steamInit()
@@ -41,12 +46,39 @@ func _process(_delta):
 	Steam.run_callbacks()
 
 # ==============================================================================
-# COLOR SYNC
+# CUSTOMIZATION SYNC (NEW SYSTEM)
 # ==============================================================================
+
+# 1. UPDATE CUSTOMIZATION (Tunic, Skin, Hair)
+@rpc("any_peer", "call_local", "reliable")
+func update_customization(part_name: String, color: Variant): # Changed type to Variant so it accepts null
+	var sender_id = multiplayer.get_remote_sender_id()
+	
+	# If this player doesn't have an entry yet, create one with NULL defaults
+	if not player_customization.has(sender_id):
+		player_customization[sender_id] = {
+			"Tunic": null, # Null means "Use the original imported material"
+			"Skin": null,
+			"Hair": null
+		}
+	
+	# Update the specific part
+	player_customization[sender_id][part_name] = color
+	
+	# Legacy Support (Optional)
+	if part_name == "Tunic" and color != null:
+		player_colors[sender_id] = color
+	
+	customization_updated.emit()
+
+# 2. REGISTER COLOR (Legacy Support)
+# We keep this so if an old script calls it, it doesn't crash the game.
 @rpc("any_peer", "call_local", "reliable")
 func register_player_color(new_color):
 	var sender_id = multiplayer.get_remote_sender_id()
 	player_colors[sender_id] = new_color
+	# Sync with new system
+	update_customization("Tunic", new_color) 
 	print("Registered Color for Peer %s: %s" % [sender_id, new_color])
 
 # ==============================================================================
@@ -70,19 +102,13 @@ func _on_lobby_created(_connect: int, lobby_id: int):
 func join_game(lobby_id: int):
 	print("Attempting to join lobby room: %s" % lobby_id)
 	
-	# --- FIX: CLEANUP EXISTING SESSIONS ---
-	# If I am already hosting or in a game, shut it down first!
+	# Cleanup existing sessions
 	if multiplayer.has_multiplayer_peer():
 		multiplayer.multiplayer_peer = null
-		
-	# Also explicitly close the Steam Peer object to be safe
 	if steam_peer:
 		steam_peer.close()
-	# --------------------------------------
 	
 	_hosted_lobby_id = lobby_id
-	
-	# Ask Steam to put us in the room. Wait for callback.
 	Steam.joinLobby(lobby_id)
 
 func _on_lobby_joined(lobby: int, _permissions: int, _locked: bool, response: int):
@@ -144,9 +170,20 @@ func server_spawn_players():
 		var player_instance = multiplayer_scene.instantiate()
 		player_instance.name = str(id)
 		
-		# APPLY COLOR
-		if id in player_colors:
+		# --- APPLY CUSTOMIZATION ---
+		if id in player_customization:
+			# 1. Try to send the full dictionary (Future-proofing)
+			if player_instance.has_method("apply_customization_data"):
+				player_instance.apply_customization_data(player_customization[id])
+			
+			# 2. Legacy Fallback: Update just the color (for scripts relying on 'player_color')
+			if "Tunic" in player_customization[id]:
+				player_instance.player_color = player_customization[id]["Tunic"]
+		
+		# Fallback for old system if no customization exists yet
+		elif id in player_colors:
 			player_instance.player_color = player_colors[id]
+		# ---------------------------
 		
 		players_node.add_child(player_instance, true)
 		
