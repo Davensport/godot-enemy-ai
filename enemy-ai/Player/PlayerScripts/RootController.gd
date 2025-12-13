@@ -254,9 +254,17 @@ func _rpc_perform_respawn(spawn_pos: Vector3):
 	set_physics_process(true)
 	
 	# 3. Reset Animation
-	AnimTree["parameters/LifeState/transition_request"] = "alive" 
+	# OLD (Causing Error):
+# AnimTree["parameters/LifeState/transition_request"] = "alive" 
+
+# NEW (Safe Fallback):
+# We try to force the state machine to travel back to Idle directly.
 	var playback = AnimTree.get("parameters/Motion/playback")
-	if playback: playback.start("Idle")
+	if playback: 
+		playback.start("Idle")
+	
+# If you are using a specific "LifeState" transition, try setting it to "default" or index 0
+# AnimTree["parameters/LifeState/transition_request"] = "default"
 	
 	# 4. Re-assert Camera
 	if is_multiplayer_authority():

@@ -53,6 +53,14 @@ func setup_ui(player: PlayerController):
 func update_health(current, max_hp):
 	hp_bar.max_value = max_hp
 	hp_bar.value = current
+	
+	# --- ADD THIS BLOCK ---
+	# If we are alive (hp > 0) and the screen is black, HIDE IT!
+	if current > 0 and death_overlay.visible:
+		death_overlay.visible = false
+		respawn_btn.visible = false
+		Input.set_mouse_mode(Input.MOUSE_MODE_CAPTURED) # Lock mouse back to game
+	# ----------------------
 
 func update_speed(new_speed):
 	speed_label.text = "Speed: %.1f" % new_speed
