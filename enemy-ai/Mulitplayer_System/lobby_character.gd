@@ -1,6 +1,8 @@
 extends Node3D
 
 @onready var label = $Label3D
+# --- NEW: Reference to the checkmark label ---
+@onready var ready_icon = $ReadyIcon 
 # Keep your mesh path!
 @onready var mesh = $"Mesh/Root Scene/RootNode/CharacterArmature/Skeleton3D/Rogue"
 
@@ -19,6 +21,11 @@ func _enter_tree():
 
 func _ready():
 	if label: label.text = player_name
+	
+	# --- NEW: Ensure checkmark is hidden by default ---
+	if ready_icon:
+		ready_icon.visible = false
+		
 	_update_color()
 	
 	# --- FIX START ---
@@ -42,6 +49,19 @@ func _update_color():
 			var mat = StandardMaterial3D.new()
 			mat.albedo_color = player_color
 			mesh.set_surface_override_material(0, mat)
+
+# --- NEW FUNCTION CALLED BY LOBBY MANAGER ---
+func set_ready_visuals(is_ready: bool):
+	# 1. Show/Hide the Checkmark Icon
+	if ready_icon:
+		ready_icon.visible = is_ready
+	
+	# 2. Turn the Name Label Green for extra clarity
+	if label:
+		if is_ready:
+			label.modulate = Color.GREEN
+		else:
+			label.modulate = Color.WHITE
 
 @rpc("any_peer", "call_remote", "reliable")
 func set_name_on_server(new_name):
