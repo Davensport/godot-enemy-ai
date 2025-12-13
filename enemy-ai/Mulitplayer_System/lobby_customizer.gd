@@ -4,11 +4,15 @@ extends Control
 @onready var part_label = $PanelContainer/VBoxContainer/HBoxContainer/PartLabel
 @onready var color_display = $PanelContainer/VBoxContainer/HBoxContainer2/ColorDisplay
 
+# --- SETTINGS ---
+# Use this to nudge the UI exactly where you want it.
+# (X, Y) -> Positive X moves Right, Positive Y moves Down
+@export var ui_offset: Vector2 = Vector2(0, 0) 
+
 # --- DATA CONFIGURATION ---
 var body_parts = ["Tunic", "Skin", "Hair"]
 var current_part_index = 0
 
-# Define specific palettes for each part (Optional polish!)
 var palettes = {
 	"Tunic": [Color.RED, Color.BLUE, Color.GREEN, Color.YELLOW, Color.WHITE, Color.BLACK, Color.PURPLE],
 	"Skin": [Color("ffcc99"), Color("e0ac69"), Color("8d5524"), Color("523218"), Color("ffdbac")],
@@ -17,32 +21,40 @@ var palettes = {
 var current_color_index = 0
 
 # --- TARGETING ---
-var target_player_node: Node3D = null # The 3D character we are following
+var target_player_node: Node3D = null 
 var main_camera: Camera3D = null
 
 func _ready():
 	_update_ui()
 
 func _process(_delta):
-	# FLOATING LOGIC: Snap this UI to the 3D player's feet
 	if target_player_node and main_camera:
-		# Find where the feet are in the 3D world
+		# 1. Get 3D Feet Position
 		var feet_pos = target_player_node.global_position 
-		feet_pos.y -= 0.5 # Offset slightly down
 		
-		# Convert 3D world position to 2D screen coordinate
+		# 2. Convert to 2D Screen Position
 		var screen_pos = main_camera.unproject_position(feet_pos)
 		
-		# Center the panel on that point
-		# (Assuming PanelContainer is the first child)
+		# 3. Center it based on the Panel's actual size
 		var panel_size = $PanelContainer.size
-		global_position = screen_pos - Vector2(panel_size.x / 2, 0)
+		
+		# Start at the feet position
+		var final_pos = screen_pos
+		
+		# Subtract half the width to center horizontally
+		final_pos.x -= (panel_size.x / 2)
+		
+		# Add your custom offset (Nudge it!)
+		final_pos += ui_offset
+		
+		# Apply
+		global_position = final_pos
 
 # --- PART BUTTONS ---
 func _on_left_part_btn_pressed():
 	current_part_index -= 1
 	if current_part_index < 0: current_part_index = body_parts.size() - 1
-	current_color_index = 0 # Reset color index when switching parts
+	current_color_index = 0 
 	_update_ui()
 
 func _on_right_part_btn_pressed():
@@ -54,7 +66,7 @@ func _on_right_part_btn_pressed():
 # --- COLOR BUTTONS ---
 func _on_left_color_btn_pressed():
 	var part_name = body_parts[current_part_index]
-	var palette = palettes.get(part_name, palettes["Tunic"]) # Default to tunic colors if missing
+	var palette = palettes.get(part_name, palettes["Tunic"]) 
 	
 	current_color_index -= 1
 	if current_color_index < 0: current_color_index = palette.size() - 1
@@ -73,9 +85,7 @@ func _update_ui():
 	var part_name = body_parts[current_part_index]
 	part_label.text = part_name
 	
-	# Update color display to show current selection
 	var palette = palettes.get(part_name, palettes["Tunic"])
-	# Safety check for empty palettes
 	if palette.size() > 0:
 		color_display.color = palette[current_color_index]
 
@@ -84,8 +94,7 @@ func _apply_change():
 	var palette = palettes.get(part_name, palettes["Tunic"])
 	var selected_color = palette[current_color_index]
 	
-	# Update UI Visual
 	color_display.color = selected_color
 	
-	# SEND TO SERVER (Using the code we wrote previously)
+	# Send directly to Global (No RPC suffix needed here)
 	Global.update_customization(part_name, selected_color)
