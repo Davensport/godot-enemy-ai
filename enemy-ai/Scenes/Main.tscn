@@ -76,6 +76,10 @@ spawn_list = Array[ExtResource("3_v1gob")]([SubResource("Resource_50glp"), SubRe
 
 [node name="SampleArena" parent="Arenas/Arena_One" instance=ExtResource("3_kln2b")]
 
+[node name="MultiplayerSpawner" type="MultiplayerSpawner" parent="Arenas/Arena_One"]
+_spawnable_scenes = PackedStringArray("uid://cixgq6lfcf62l")
+spawn_path = NodePath("..")
+
 [node name="MultiplayerSpawner" type="MultiplayerSpawner" parent="."]
 _spawnable_scenes = PackedStringArray("uid://bmqc1pownjiil")
 spawn_path = NodePath("../Players")

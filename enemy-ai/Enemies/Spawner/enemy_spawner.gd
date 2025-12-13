@@ -13,18 +13,20 @@ var current_enemy_count: int = 0
 var spawn_timer: Timer
 
 func _ready():
-	# Create and configure a timer automatically via code
+	# 1. SECURITY CHECK
+	# Only the Server is allowed to spawn things.
+	# The MultiplayerSpawner (which we will add next) will handle the Clients.
+	if not multiplayer.is_server():
+		return  # <--- Clients stop here!
+
+	# 2. Existing Timer Code
 	spawn_timer = Timer.new()
 	spawn_timer.wait_time = spawn_interval
 	spawn_timer.autostart = true
-	spawn_timer.one_shot = false
 	spawn_timer.timeout.connect(_on_spawn_timer_timeout)
 	add_child(spawn_timer)
 	
-	# Randomize seed for RNG
 	randomize()
-	
-	# Spawn the first one immediately
 	call_deferred("_spawn_enemy")
 
 func _on_spawn_timer_timeout():
