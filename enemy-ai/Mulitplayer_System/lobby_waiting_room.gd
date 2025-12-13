@@ -100,7 +100,14 @@ func _update_lobby_nodes():
 			# A. Position
 			if index < podiums.size():
 				child.position = podiums[index].position
-				child.rotation = podiums[index].rotation
+				
+				# --- OLD: RELIED ON PODIUM ROTATION ---
+				# child.rotation = podiums[index].rotation
+				
+				# --- NEW: FORCE THEM TO FACE FORWARD ---
+				# This forces Rotation Y to 0 (or 180).
+				# Try Vector3.ZERO first. If they face backwards, change it to Vector3(0, PI, 0).
+				child.rotation = Vector3.ZERO
 			
 			# B. Apply Global Customization
 			if id in Global.player_customization:
