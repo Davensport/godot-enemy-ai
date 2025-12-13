@@ -55,17 +55,18 @@ func _spawn_player_and_ui():
 
 # This function is now triggered by the UI Button via SignalBus
 func _on_respawn_requested():
-	print("Respawn requested. Cleaning up...")
+	print("Respawn requested. Resetting state...")
 	
-	# 1. Delete the Old HUD
-	if current_hud_instance and is_instance_valid(current_hud_instance):
-		current_hud_instance.queue_free()
+	# 1. DO NOT Delete the HUD
+	# We want to keep the HUD, just hide the death screen (which the HUD script handles now).
+	# if current_hud_instance ... -> DELETE THIS
 		
-	# 2. Delete the Old Player
-	# We look for the sibling node named "player"
-	var old_player = get_parent().get_node_or_null("player")
-	if old_player and is_instance_valid(old_player):
-		old_player.queue_free()
+	# 2. DO NOT Delete the Player
+	# Our RootController handles the teleport and health reset.
+	# var old_player = ... -> DELETE THIS
+	# old_player.queue_free() -> DELETE THIS
+	
+	pass
 	
 	# 3. Wait a frame for deletion to finish, then spawn anew
 	await get_tree().process_frame 
