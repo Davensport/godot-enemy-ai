@@ -32,10 +32,10 @@ func _ready():
 	Global.player_list_updated.connect(_refresh_display)
 
 # --- HELPER FUNCTIONS ---
-func _on_peer_connected(id):
+func _on_peer_connected(_id):
 	_spawn_lobby_players()
 
-func _on_peer_disconnected(id):
+func _on_peer_disconnected(_id):
 	_spawn_lobby_players()
 
 # ==============================================================================

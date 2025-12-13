@@ -131,7 +131,7 @@ func _ready():
 
 # --- PROCESS LOOP ---
 
-func _process(delta):
+func _process(_delta):
 	# Watchdog: If RPC comes in later, update the mesh
 	if player_color != _current_visual_color:
 		_apply_color_to_mesh(player_color)
