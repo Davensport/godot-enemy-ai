@@ -211,13 +211,13 @@ func _rpc_player_died():
 	if is_multiplayer_authority():
 		SignalBus.player_died.emit()
 
-# --- RESPAWN LOGIC (FIXED) ---
+# --- RESPAWN LOGIC (UPDATED) ---
 
 # A. CLIENT: Triggered by UI Button
 func _on_ui_respawn_requested():
 	_rpc_request_respawn.rpc_id(1)
 
-# B. SERVER: Calculates respawn data
+# B. SERVER: Calculates random spawn data
 @rpc("any_peer", "call_local", "reliable")
 func _rpc_request_respawn():
 	if not multiplayer.is_server(): return
@@ -227,10 +227,12 @@ func _rpc_request_respawn():
 		health.reset_health() 
 		_rpc_update_health.rpc(health.current_health, health.max_health)
 	
-	# 2. Decide Spawn Position
-	var spawn_pos = Vector3(0, 2, 0)
+	# 2. Decide Spawn Position (Randomized to prevent stacking!)
+	# We create a random offset between -3 and 3
+	var random_offset = Vector3(randf_range(-3, 3), 0, randf_range(-3, 3))
+	var spawn_pos = Vector3(0, 2, 0) + random_offset
 	
-	# 3. Tell everyone (especially the Client) to move there
+	# 3. Tell everyone to move there
 	_rpc_perform_respawn.rpc(spawn_pos)
 
 # C. ALL CLIENTS: Wake up and MOVE
@@ -239,9 +241,14 @@ func _rpc_perform_respawn(spawn_pos: Vector3):
 	# Security check
 	if multiplayer.get_remote_sender_id() != 1: return
 
-	# 1. APPLY POSITION (Fixes the "Spectator" bug)
+	# 1. TELEPORT (With Physics Safety)
+	# We disable physics for a split second to allow the teleport to "snap"
+	set_physics_process(false)
 	global_position = spawn_pos
 	velocity = Vector3.ZERO
+	
+	# Wait one physics frame to let the engine accept the new position
+	await get_tree().physics_frame
 	
 	# 2. Re-enable Physics
 	set_physics_process(true)
@@ -251,6 +258,9 @@ func _rpc_perform_respawn(spawn_pos: Vector3):
 	var playback = AnimTree.get("parameters/Motion/playback")
 	if playback: playback.start("Idle")
 	
-	# 4. Re-assert Camera (Just in case)
+	# 4. Re-assert Camera
 	if is_multiplayer_authority():
 		camera_rig.current = true
+		
+	# 5. DEBUG PRINT (To confirm it worked)
+	print("Respawned at: ", global_position)
