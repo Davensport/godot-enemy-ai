@@ -120,16 +120,26 @@ func _connect_signals():
 	if combat_component:
 		combat_component.on_attack_performed.connect(_on_attack_visuals)
 	
-	# Note: We removed the "on_player_spawned" connections because we now poll for players automatically.
-	# SignalBus.player_died.connect(_on_player_died) # Optional: Can keep if you want specific logic
+	# SignalBus connections (removed player_spawned since we now poll automatically)
+	# SignalBus.player_died.connect(_on_player_died) 
 
-## --- PUBLIC HELPER FUNCTIONS ---
+## --- NETWORKED ANIMATION FUNCTIONS (RPCs) ---
+
 func play_animation(anim_name: String):
+	# If we are the Server, we tell everyone (including ourselves) to play the animation.
+	if multiplayer.is_server():
+		_rpc_play_animation.rpc(anim_name)
+
+# @rpc("call_local") means: Run this on the Server AND send it to all Clients.
+# @rpc("reliable") means: Make sure this packet definitely arrives.
+@rpc("call_local", "reliable")
+func _rpc_play_animation(anim_name: String):
 	if _animation_players.is_empty() or anim_name == "":
 		return
 
 	for anim_player in _animation_players:
 		if anim_player.has_animation(anim_name):
+			# Optimization: If already playing this animation, don't restart it
 			if anim_player.current_animation == anim_name and anim_player.is_playing():
 				continue 
 			anim_player.play(anim_name, 0.2)
@@ -187,12 +197,21 @@ func _update_ui(current, max_hp):
 		health_bar.update_bar(current, safe_max)
 
 func _on_attack_visuals():
+	# Server detects the attack -> tells everyone to do the "Lunge" tween
+	if multiplayer.is_server():
+		_rpc_attack_visuals.rpc()
+	
+	# Logic (Damage) still happens here
+	if stats:
+		SignalBus.enemy_attack_occurred.emit(self, stats.attack_damage)
+
+@rpc("call_local", "reliable")
+func _rpc_attack_visuals():
+	# Visual "Lunge" effect synced on all clients
 	if visuals_container:
 		var tween = create_tween()
 		tween.tween_property(visuals_container, "position", Vector3(0, 0, -0.5), 0.1).as_relative()
 		tween.tween_property(visuals_container, "position", Vector3(0, 0, 0.5), 0.2).as_relative()
-	if stats:
-		SignalBus.enemy_attack_occurred.emit(self, stats.attack_damage)
 
 # --- EVENT HANDLERS ---
 func _on_damage_event(_amount):
