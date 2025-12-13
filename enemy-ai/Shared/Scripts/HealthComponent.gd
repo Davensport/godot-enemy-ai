@@ -24,27 +24,16 @@ func initialize(new_max_hp: float):
 	# Emit immediately so UI updates before the game really starts
 	on_health_changed.emit(current_health, max_health)
 
-# Add this RPC tag so Clients can call this function on the Server
-@rpc("any_peer", "call_local")
 func take_damage(amount: float):
-	# 1. SECURITY CHECK
-	# Only the Server is allowed to actually lower the health numbers.
-	# This prevents "cheating" and sync issues.
-	if not multiplayer.is_server():
-		# If I am a Client, I must ask the Server to do it for me.
-		take_damage.rpc_id(1, amount)
-		return
+	if current_health <= 0:
+		return # Already dead
 
-	# 2. SERVER LOGIC (Only runs on the Host)
 	current_health -= amount
-	current_health = clamp(current_health, 0, max_health)
+	current_health = max(0.0, current_health) # Prevent negative HP
 	
-	# Emit signal so UI/Healthbars update
-	# (Note: You might need a separate SyncVar for health if you want Client UI to update instantly)
+	on_damage_taken.emit(amount)
 	on_health_changed.emit(current_health, max_health)
 	
-	print("Enemy took damage. Current HP: ", current_health)
-
 	if current_health <= 0:
 		die()
 
@@ -58,15 +47,7 @@ func heal(amount: float):
 	on_health_changed.emit(current_health, max_health)
 
 func die():
-	# Ensure only the server triggers death to prevent double-deaths
-	if not multiplayer.is_server(): return
-	
 	on_death.emit()
-	
-	# If this is an Enemy, we usually queue_free() it.
-	# Since it was spawned by a MultiplayerSpawner, deleting it on Server
-	# deletes it for EVERYONE automatically.
-	get_parent().queue_free()
 	
 func reset_health():
 	current_health = max_health
