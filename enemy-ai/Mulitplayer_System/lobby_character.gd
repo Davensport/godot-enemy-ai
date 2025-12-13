@@ -13,7 +13,7 @@ extends Node3D
 # ==============================================================================
 const VISUAL_CONFIG = {
 	"Tunic": { "surface": 3, "target": "body" }, 
-	"Skin":  { "surface": 1, "target": "body" },
+	"Skin":  { "surface": 0, "target": "body" },
 	"Hair":  { "surface": 0, "target": "hair" } 
 }
 
