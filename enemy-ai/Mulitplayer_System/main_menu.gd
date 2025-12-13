@@ -7,8 +7,8 @@ extends Control
 func _ready():
 	# Check if Steam is running
 	if Steam.isSteamRunning():
-		var name = Steam.getPersonaName()
-		steam_name_label.text = "Logged in as: " + str(name)
+		var username = Steam.getPersonaName()
+		steam_name_label.text = "Logged in as: " + str(username)
 	else:
 		steam_name_label.text = "Steam not running (Debug Mode)"
 		steam_name_label.modulate = Color.RED # Make it red to warn you!
