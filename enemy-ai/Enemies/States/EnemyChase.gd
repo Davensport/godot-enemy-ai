@@ -8,13 +8,9 @@ func enter():
 		enemy.movement_component.set_target(enemy.player_target)
 
 func physics_update(delta):
-	# Server Authority Check is assumed to be in StateMachine or Enemy script
-	
-	# 1. Safety Check
+	# 1. Safety Check: If target is deleted or invalid, return to idle
 	if not is_instance_valid(enemy.player_target):
-		enemy.find_player() # Try to find a new one immediately
-		if not is_instance_valid(enemy.player_target):
-			transition_requested.emit(self, "idle")
+		transition_requested.emit(self, "idle")
 		return
 
 	var distance = enemy.global_position.distance_to(enemy.player_target.global_position)
