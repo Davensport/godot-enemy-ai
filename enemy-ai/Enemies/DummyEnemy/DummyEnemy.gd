@@ -32,6 +32,9 @@ var gravity = ProjectSettings.get_setting("physics/3d/default_gravity")
 # NEW: Prevents enemies from wandering off the map
 var home_position: Vector3 
 
+var target_check_timer: float = 0.0
+const TARGET_CHECK_INTERVAL: float = 0.5 # Check every 0.5 seconds
+
 # --- SETUP ---
 func _ready():
 	if not stats:
@@ -56,6 +59,13 @@ func _physics_process(delta):
 	if not stats.is_flying and not is_on_floor() and not is_dead:
 		velocity.y -= gravity * delta
 
+	# ONLY SERVER runs AI logic
+	if multiplayer.is_server():
+		_handle_targeting_logic(delta)
+		
+		# Ensure State Machine runs
+		# (You likely need to wrap your StateMachine._physics_process calls in an "is_server()" check too)
+	
 	move_and_slide()
 
 func initialize_from_stats():
@@ -144,11 +154,38 @@ func rotate_smoothly(target_direction: Vector3, delta: float):
 	rotation.y = lerp_angle(current_y, target_y, turn_speed * delta)
 
 func find_player():
-	var players = get_tree().get_nodes_in_group("player")
-	if players.size() > 0:
-		player_target = players[0]
-		if movement_component: movement_component.set_target(player_target)
-		if combat_component: combat_component.set_target(player_target)
+	# 1. SERVER AUTHORITY CHECK
+	# Only the server chooses targets. Clients just listen.
+	if not multiplayer.is_server():
+		return
+
+	var all_players = get_tree().get_nodes_in_group("player")
+	var closest_player: Node3D = null
+	var closest_dist: float = INF
+
+	# 2. ITERATE AND COMPARE
+	for player in all_players:
+		# Safety: Ensure player is alive and valid
+		if not is_instance_valid(player):
+			continue
+			
+		# Optional: Check if player is dead (assuming players have a 'is_dead' property)
+		# if player.has_method("is_dead") and player.is_dead(): continue
+		
+		var dist = global_position.distance_to(player.global_position)
+		
+		# 3. WEIGHTED SELECTION
+		# Simple logic: Pick the absolute closest.
+		if dist < closest_dist:
+			closest_dist = dist
+			closest_player = player
+
+	# 4. ASSIGN TARGET
+	player_target = closest_player
+	
+	# Update components
+	if movement_component: movement_component.set_target(player_target)
+	if combat_component: combat_component.set_target(player_target)
 
 # --- INTERNAL HELPERS ---
 func _find_all_animation_players(node: Node):
@@ -194,3 +231,9 @@ func _on_player_spawned():
 func _on_player_died():
 	player_target = null
 	state_machine.force_change_state("idle")
+	
+func _handle_targeting_logic(delta):
+	target_check_timer -= delta
+	if target_check_timer <= 0.0:
+		target_check_timer = TARGET_CHECK_INTERVAL
+		find_player() # Re-evaluate who is closest
