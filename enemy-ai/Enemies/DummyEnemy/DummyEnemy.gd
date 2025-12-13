@@ -28,12 +28,11 @@ var _animation_players: Array[AnimationPlayer] = []
 var player_target: Node3D
 var flight_offset_time: float = 0.0 
 var gravity = ProjectSettings.get_setting("physics/3d/default_gravity")
-
-# NEW: Prevents enemies from wandering off the map
 var home_position: Vector3 
 
+# --- 7. MULTIPLAYER LOGIC ---
 var target_check_timer: float = 0.0
-const TARGET_CHECK_INTERVAL: float = 0.5 # Check every 0.5 seconds
+const TARGET_CHECK_INTERVAL: float = 0.5
 
 # --- SETUP ---
 func _ready():
@@ -50,17 +49,25 @@ func _ready():
 	if stats.is_flying:
 		flight_offset_time = randf() * 10.0
 	
-	await get_tree().physics_frame
-	find_player()
+	# Only the Server needs to find targets initially
+	if multiplayer.is_server():
+		await get_tree().physics_frame
+		find_player()
 
 func _physics_process(delta):
 	# 1. CLIENT STOP CHECK
-	# If we are NOT the server, we do absolutely nothing here.
-	# We just let the MultiplayerSynchronizer move us.
+	# If we are NOT the server, stop thinking. Let the MultiplayerSynchronizer move us.
 	if not multiplayer.is_server():
 		return
 
-	# 2. SERVER LOGIC (Existing Code)
+	# 2. SERVER LOGIC
+	# A. Periodic Targeting Check (Find closest player)
+	target_check_timer -= delta
+	if target_check_timer <= 0.0:
+		target_check_timer = TARGET_CHECK_INTERVAL
+		find_player()
+
+	# B. Standard Physics
 	var is_dead = state_machine.current_state and state_machine.current_state.name.to_lower() == "death"
 	
 	if not stats.is_flying and not is_on_floor() and not is_dead:
@@ -77,7 +84,6 @@ func initialize_from_stats():
 
 	if health_component: health_component.initialize(stats.max_health)
 	
-	# FIX: Pass the entire stats resource
 	if movement_component: movement_component.initialize(stats)
 	
 	if combat_component:
@@ -113,20 +119,11 @@ func _connect_signals():
 		
 	if combat_component:
 		combat_component.on_attack_performed.connect(_on_attack_visuals)
-
-	SignalBus.player_spawned.connect(_on_player_spawned)
-	SignalBus.player_died.connect(_on_player_died)
+	
+	# Note: We removed the "on_player_spawned" connections because we now poll for players automatically.
+	# SignalBus.player_died.connect(_on_player_died) # Optional: Can keep if you want specific logic
 
 ## --- PUBLIC HELPER FUNCTIONS ---
-#func play_animation(anim_name: String):
-	#if _animation_players.is_empty() or anim_name == "":
-		#return
-	#for anim_player in _animation_players:
-		#if anim_player.has_animation(anim_name):
-			#if anim_player.current_animation == anim_name and anim_player.is_playing():
-				#return 
-			#anim_player.play(anim_name, 0.2) 
-			#return
 func play_animation(anim_name: String):
 	if _animation_players.is_empty() or anim_name == "":
 		return
@@ -153,39 +150,29 @@ func rotate_smoothly(target_direction: Vector3, delta: float):
 	
 	rotation.y = lerp_angle(current_y, target_y, turn_speed * delta)
 
+# --- REVISED TARGETING LOGIC (SERVER ONLY) ---
 func find_player():
-	# 1. SERVER AUTHORITY CHECK
-	# Only the server chooses targets. Clients just listen.
 	if not multiplayer.is_server():
 		return
 
 	var all_players = get_tree().get_nodes_in_group("player")
 	var closest_player: Node3D = null
-	var closest_dist: float = INF
+	var closest_dist: float = 99999.0
 
-	# 2. ITERATE AND COMPARE
 	for player in all_players:
-		# Safety: Ensure player is alive and valid
 		if not is_instance_valid(player):
 			continue
 			
-		# Optional: Check if player is dead (assuming players have a 'is_dead' property)
-		# if player.has_method("is_dead") and player.is_dead(): continue
-		
 		var dist = global_position.distance_to(player.global_position)
-		
-		# 3. WEIGHTED SELECTION
-		# Simple logic: Pick the absolute closest.
 		if dist < closest_dist:
 			closest_dist = dist
 			closest_player = player
-
-	# 4. ASSIGN TARGET
-	player_target = closest_player
 	
-	# Update components
-	if movement_component: movement_component.set_target(player_target)
-	if combat_component: combat_component.set_target(player_target)
+	# Only update if the target has actually changed
+	if closest_player != player_target:
+		player_target = closest_player
+		if movement_component: movement_component.set_target(player_target)
+		if combat_component: combat_component.set_target(player_target)
 
 # --- INTERNAL HELPERS ---
 func _find_all_animation_players(node: Node):
@@ -217,23 +204,9 @@ func _on_damage_event(_amount):
 	state_machine.force_change_state("hit")
 
 func take_damage(amount: float):
-	# this just connects the components together
 	if health_component:
 		health_component.take_damage(amount)
 
 func _on_death_event():
 	state_machine.force_change_state("death")
 	SignalBus.enemy_died.emit(self)
-
-func _on_player_spawned():
-	find_player()
-
-func _on_player_died():
-	player_target = null
-	state_machine.force_change_state("idle")
-	
-func _handle_targeting_logic(delta):
-	target_check_timer -= delta
-	if target_check_timer <= 0.0:
-		target_check_timer = TARGET_CHECK_INTERVAL
-		find_player() # Re-evaluate who is closest

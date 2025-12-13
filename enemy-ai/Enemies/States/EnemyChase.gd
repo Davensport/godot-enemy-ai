@@ -8,21 +8,17 @@ func enter():
 		enemy.movement_component.set_target(enemy.player_target)
 
 func physics_update(delta):
-	# Server Authority Check is assumed to be in StateMachine or Enemy script
-	
-	# 1. Safety Check
+	# 1. Safety Check: If target is deleted or invalid, return to idle
 	if not is_instance_valid(enemy.player_target):
-		enemy.find_player() # Try to find a new one immediately
-		if not is_instance_valid(enemy.player_target):
-			transition_requested.emit(self, "idle")
+		transition_requested.emit(self, "idle")
 		return
 
 	var distance = enemy.global_position.distance_to(enemy.player_target.global_position)
 	
 	# 2. De-Aggro Check ("Give Up")
-	# If the player runs far enough away (exceeds deaggro_range), stop chasing.
+	# If the target runs too far away, stop chasing.
 	if distance > stats.deaggro_range:
-		enemy.player_target = null # Forget the target so we don't immediately re-aggro
+		enemy.player_target = null 
 		transition_requested.emit(self, "wander") 
 		return
 
@@ -33,7 +29,7 @@ func physics_update(delta):
 		_handle_ground_movement(delta)
 
 	# 4. Attack Transition Check
-	# We check if we are within range AND have line of sight
+	# [cite_start]We check if we are within range AND have line of sight [cite: 6]
 	if distance <= stats.attack_range:
 		if enemy.combat_component.has_line_of_sight():
 			transition_requested.emit(self, "attack")
@@ -49,10 +45,11 @@ func _handle_flying_movement(delta):
 
 func _handle_ground_movement(delta):
 	if enemy.movement_component:
-		# Update the component's target (in case the player moved)
+		# CRITICAL: Always update the component's target to match the main script's selection
+		# This ensures that if DummyEnemy switches targets, the chase updates instantly.
 		enemy.movement_component.set_target(enemy.player_target)
 		
-		# Get the calculated velocity from the component (handles pathfinding/navmesh)
+		# [cite_start]Get the calculated velocity from the component (handles pathfinding/navmesh) [cite: 8]
 		var chase_vel = enemy.movement_component.get_chase_velocity()
 		
 		# Apply movement
