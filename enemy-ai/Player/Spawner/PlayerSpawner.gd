@@ -66,8 +66,6 @@ func _on_respawn_requested():
 	# var old_player = ... -> DELETE THIS
 	# old_player.queue_free() -> DELETE THIS
 	
-	pass
-	
 	# 3. Wait a frame for deletion to finish, then spawn anew
 	await get_tree().process_frame 
 	_spawn_player_and_ui()

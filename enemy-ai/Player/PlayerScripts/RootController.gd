@@ -264,3 +264,13 @@ func _rpc_perform_respawn(spawn_pos: Vector3):
 		
 	# 5. DEBUG PRINT (To confirm it worked)
 	print("Respawned at: ", global_position)
+	
+func _exit_tree():
+	# If the game is just closing, ignore this.
+	if not is_inside_tree(): return
+	
+	print("!!!!!!!!!!!! ALERT !!!!!!!!!!!!")
+	print("PLAYER ", name, " IS BEING DELETED!")
+	print("DELETION CAUSED BY SCRIPT:")
+	print_stack() # <--- This prints the exact line number of the killer
+	print("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
