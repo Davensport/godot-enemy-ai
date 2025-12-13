@@ -11,8 +11,20 @@ extends Control
 # --- INPUT REFERENCES ---
 @onready var lobby_id_input = $MenuContainer/MenuJoinLobby/LobbyIdInput
 
+@onready var steam_name_label: Label = $MenuContainer/SteamNameLabel
+
+
 func _ready():
-	# Start by showing only the main root menu
+	# 1. Get the Steam Name
+	var current_name = Global.player_name
+	if Steam.isSteamRunning():
+		current_name = Steam.getPersonaName()
+	
+	# 2. Update the Label
+	if steam_name_label:
+		steam_name_label.text = "Logged in as: " + current_name
+	
+	# 3. Show the root page (Existing code)
 	_show_page(menu_root)
 
 # --- HELPER FUNCTION: PAGE SWAPPER ---
