@@ -10,11 +10,11 @@ extends CharacterBody3D
 
 # --- Components (Adjust paths if your scene tree is different) ---
 @onready var state_machine: StateMachine = $StateMachine
-@onready var movement_component: Node = $MovementComponent
-@onready var combat_component: Node = $CombatComponent
-@onready var health_component: Node = $HealthComponent
-@onready var visuals_container: Node3D = $Visuals # Assumed container for mesh
-@onready var animation_player: AnimationPlayer = $Visuals/AnimationPlayer 
+@onready var movement_component: Node = $Components/MovementComponent
+@onready var combat_component: Node = $Components/EnemyCombatComponent
+@onready var health_component: Node = $Components/HealthComponent
+@onready var visuals_container: Node3D = $VisualsContainer # Assumed container for mesh
+@onready var animation_player: AnimationPlayer = $VisualsContainer/AnimationPlayer 
 @onready var collision_shape: CollisionShape3D = $CollisionShape3D
 
 # --- Runtime State ---
