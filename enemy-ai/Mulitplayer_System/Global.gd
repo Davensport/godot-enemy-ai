@@ -68,7 +68,21 @@ func _on_lobby_created(_connect: int, lobby_id: int):
 			call_deferred("_switch_to_lobby_menu")
 
 func join_game(lobby_id: int):
+	print("Attempting to join lobby room: %s" % lobby_id)
+	
+	# --- FIX: CLEANUP EXISTING SESSIONS ---
+	# If I am already hosting or in a game, shut it down first!
+	if multiplayer.has_multiplayer_peer():
+		multiplayer.multiplayer_peer = null
+		
+	# Also explicitly close the Steam Peer object to be safe
+	if steam_peer:
+		steam_peer.close()
+	# --------------------------------------
+	
 	_hosted_lobby_id = lobby_id
+	
+	# Ask Steam to put us in the room. Wait for callback.
 	Steam.joinLobby(lobby_id)
 
 func _on_lobby_joined(lobby: int, _permissions: int, _locked: bool, response: int):
