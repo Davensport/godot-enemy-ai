@@ -71,7 +71,7 @@ func join_game(lobby_id: int):
 	_hosted_lobby_id = lobby_id
 	Steam.joinLobby(lobby_id)
 
-func _on_lobby_joined(lobby: int, _permissions: int, _locked: bool, response: int):
+func _on_lobby_joined(lobby: int, permissions: int, locked: bool, response: int):
 	if response == 1:
 		var owner_id = Steam.getLobbyOwner(lobby)
 		if owner_id != Steam.getSteamID():
