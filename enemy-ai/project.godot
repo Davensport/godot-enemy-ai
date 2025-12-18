@@ -15,6 +15,10 @@ run/main_scene="uid://c3bca8ijdhnml"
 config/features=PackedStringArray("4.5", "Forward Plus")
 config/icon="res://icon.svg"
 
+[audio]
+
+driver/mix_rate=22050
+
 [autoload]
 
 SignalBus="*res://AutoloadScripts/SignalBus.gd"
