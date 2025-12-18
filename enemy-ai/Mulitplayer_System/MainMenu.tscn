@@ -1,7 +1,6 @@
-[gd_scene load_steps=3 format=3 uid="uid://c3bca8ijdhnml"]
+[gd_scene load_steps=2 format=3 uid="uid://c3bca8ijdhnml"]
 
 [ext_resource type="Script" uid="uid://dx6qfas7r1pdy" path="res://Mulitplayer_System/main_menu.gd" id="1_wyn03"]
-[ext_resource type="AudioStream" uid="uid://tmk8en8b258p" path="res://Mulitplayer_System/Audio/ES_The Fairy Dance - Bonnie Grace.mp3" id="2_ck3ok"]
 
 [node name="MainMenu" type="Control"]
 layout_mode = 3
@@ -267,11 +266,6 @@ text = "Join Game"
 [node name="QuitButton" type="Button" parent="MenuContainer/VBoxContainer"]
 layout_mode = 2
 text = "Quit Game"
-
-[node name="MenuMusic" type="AudioStreamPlayer" parent="."]
-stream = ExtResource("2_ck3ok")
-autoplay = true
-bus = &"Music"
 
 [connection signal="pressed" from="MenuContainer/MenuRoot/Btn_Play" to="." method="_on_btn_play_pressed"]
 [connection signal="pressed" from="MenuContainer/MenuRoot/Btn_Settings" to="." method="_on_btn_settings_pressed"]

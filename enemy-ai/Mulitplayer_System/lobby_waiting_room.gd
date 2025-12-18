@@ -46,6 +46,9 @@ func _ready():
 	# Listen for Global updates
 	Global.player_list_updated.connect(_refresh_display)
 	Global.customization_updated.connect(_refresh_display)
+	
+	# Ensure music is playing (wont restart if already on)
+	MusicManager.play_menu_music()
 
 
 func _on_spawner_spawned(_node):

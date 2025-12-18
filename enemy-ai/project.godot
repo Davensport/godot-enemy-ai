@@ -19,6 +19,7 @@ config/icon="res://icon.svg"
 
 SignalBus="*res://AutoloadScripts/SignalBus.gd"
 Global="*res://Mulitplayer_System/Global.gd"
+MusicManager="*res://Mulitplayer_System/Audio/MusicManager.tscn"
 
 [debug]
 

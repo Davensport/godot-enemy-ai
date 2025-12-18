@@ -15,6 +15,8 @@ func _ready():
 		_spawn_player(1)
 	else:
 		_register_player.rpc_id(1, multiplayer.get_unique_id())
+		
+	MusicManager.stop_menu_music()
 
 @rpc("any_peer", "call_local", "reliable")
 func _register_player(new_player_id):

@@ -46,6 +46,9 @@ func _ready():
 
 	# 4. SHOW ROOT PAGE
 	_show_page(menu_root)
+	
+	# START THE MUSIC
+	MusicManager.play_menu_music()
 
 # --- HELPER FUNCTION: PAGE SWAPPER ---
 func _show_page(target_page: Control):
