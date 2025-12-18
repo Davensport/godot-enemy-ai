@@ -51,14 +51,8 @@ func _ready():
 	MusicManager.play_track("res://Mulitplayer_System/Audio/ES_The Fairy Dance - Bonnie Grace.mp3")
 
 
-func _on_spawner_spawned(node):
-	# 1. ASSIGN AUTHORITY
-	# If the node name is a number (like "12345"), that number is the owner ID.
-	if node.name.is_valid_int():
-		var id = node.name.to_int()
-		node.set_multiplayer_authority(id)
-	
-	# 2. UPDATE VISUALS
+func _on_spawner_spawned(_node):
+	# The spawner just created a character. Update visuals immediately!
 	_update_lobby_nodes()
 
 

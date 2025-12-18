@@ -4,9 +4,6 @@ extends Node
 # --- SIGNALS ---
 signal on_talking(is_talking: bool) # NEW: Tells the UI to light up
 
-# Add this variable at the top with your other variables
-@export var volume_multiplier: float = 4.0
-
 # --- CONFIGURATION ---
 @export var input: Node 
 @export var audio_player: AudioStreamPlayer3D
@@ -93,19 +90,15 @@ func _refresh_talking_visual():
 func send_voice_data(data: PackedFloat32Array):
 	if not _playback: return
 	
-	# VISUAL FEEDBACK
+	# --- REMOTE VISUAL FEEDBACK ---
+	# If we received data, they are "talking"
 	_refresh_talking_visual()
+	# ------------------------------
 	
 	var stereo_buffer = PackedVector2Array()
 	stereo_buffer.resize(data.size())
-	
 	for i in range(data.size()):
-		# AMPLIFY THE SOUND HERE
-		var sample = data[i] * volume_multiplier 
-		
-		# Clamp it so it doesn't distort if it gets too loud
-		sample = clamp(sample, -1.0, 1.0)
-		
+		var sample = data[i]
 		stereo_buffer[i] = Vector2(sample, sample)
 		
 	_playback.push_buffer(stereo_buffer)
