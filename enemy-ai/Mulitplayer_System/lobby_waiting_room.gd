@@ -92,13 +92,6 @@ func _update_lobby_nodes():
 			if not has_node(str(id)):
 				var char_instance = lobby_character_scene.instantiate()
 				char_instance.name = str(id)
-				
-				# --- ADD THIS LINE ---
-				# This tells Godot: "Player X owns this node, so let them control the mic."
-				char_instance.set_multiplayer_authority(id) 
-				# ---------------------
-		
-		
 				if id == multiplayer.get_unique_id():
 					char_instance.player_name = Steam.getPersonaName()
 				add_child(char_instance, true)
