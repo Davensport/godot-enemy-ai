@@ -20,6 +20,7 @@ properties/3/spawn = true
 properties/3/replication_mode = 1
 
 [sub_resource type="AudioStreamGenerator" id="AudioStreamGenerator_7ql30"]
+mix_rate = 22050.0
 buffer_length = 0.1
 
 [node name="LobbyCharacter" type="Node3D"]
@@ -90,7 +91,7 @@ transform = Transform3D(-1, 0, 8.742278e-08, 0, 1, 0, -8.742278e-08, 0, -1, 0, 2
 billboard = 1
 text = "Username"
 
-[node name="VoipLabel" type="Label3D" parent="."]
+[node name="VoiceLabel" type="Label3D" parent="."]
 transform = Transform3D(-1, 0, 8.742278e-08, 0, 1, 0, -8.742278e-08, 0, -1, -0.5686126, 2.371458, 4.970969e-08)
 billboard = 1
 text = "🔊"

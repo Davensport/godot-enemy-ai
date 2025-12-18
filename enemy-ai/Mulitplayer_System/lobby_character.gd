@@ -3,9 +3,13 @@ extends Node3D
 @onready var label = $Label3D
 @onready var ready_icon = $ReadyIcon 
 
+# --- VOICE REFERENCE (NEW) ---
+# Ensure you have a Label3D named "VoiceLabel" or change this name
+@onready var voice_label = $VoiceLabel 
+@onready var voice_component = $VoiceComponent
+
 # --- MESH REFERENCES ---
 @onready var body_mesh = $"Mesh/Root Scene/RootNode/CharacterArmature/Skeleton3D/Rogue"
-# Update this path if it is incorrect for your project!
 @onready var hair_mesh = $"Mesh/Root Scene/RootNode/CharacterArmature/Skeleton3D/Head/NurbsPath_001"
 
 # ==============================================================================
@@ -23,67 +27,61 @@ var player_data = {
 	"Hair": null
 }
 
-# --- THE FIX IS HERE ---
-# We removed the 'set(new_color)' block. 
-# Now, this variable is just data. It won't overwrite your visuals.
 @export var player_color := Color.WHITE
 
+# SETTER: When LobbyManager changes this, the Text updates automatically
 @export var player_name := "":
 	set(value):
 		player_name = value
 		if label: label.text = value
 
-func _enter_tree():
-	set_multiplayer_authority(1)
-
 func _ready():
+	# 1. VISUAL SETUP
 	if label: label.text = player_name
 	if ready_icon: ready_icon.visible = false
+	if voice_label: voice_label.visible = false
 	
 	_apply_visuals()
-	
-	if name.to_int() == multiplayer.get_unique_id():
-		var my_name = Steam.getPersonaName()
-		if multiplayer.is_server():
-			set_name_on_server(my_name)
-		else:
-			set_name_on_server.rpc_id(1, my_name)
+
+	# 2. VOICE CONNECTION (This makes the speaker icon work!)
+	if voice_component:
+		# Connect the signal from VoiceComponent to our local function
+		voice_component.on_talking.connect(_on_player_talking)
+
+	# --- DELETED "Input Logic" ---
+	# We removed the name setting logic here because LobbyWaitingRoom.gd 
+	# handles it better for everyone.
+
+func _on_player_talking(is_talking: bool):
+	if voice_label:
+		voice_label.visible = is_talking
 
 # ==============================================================================
 # VISUAL LOGIC
 # ==============================================================================
 
 func apply_customization_data(new_data: Dictionary):
-	# Merge new data so we don't lose other parts
 	for key in new_data:
 		player_data[key] = new_data[key]
 	_apply_visuals()
 
 func _apply_visuals():
-	# Loop through our data (Tunic, Skin, Hair)
 	for part_name in player_data:
-		
-		# Do we have a config for this part?
 		if part_name in VISUAL_CONFIG:
 			var config = VISUAL_CONFIG[part_name]
 			var color = player_data[part_name]
 			
-			# 1. DECIDE WHICH MESH TO PAINT
 			var target_mesh = null
 			if config["target"] == "body":
 				target_mesh = body_mesh
 			elif config["target"] == "hair":
 				target_mesh = hair_mesh
 			
-			# 2. PAINT IT (Safely)
 			if target_mesh:
 				var surface_index = config["surface"]
-				
 				if color == null:
-					# RESET: Reveal the original imported texture
 					target_mesh.set_surface_override_material(surface_index, null)
 				else:
-					# PAINT: Apply the chosen color
 					var mat = StandardMaterial3D.new()
 					mat.albedo_color = color
 					target_mesh.set_surface_override_material(surface_index, mat)
@@ -95,6 +93,7 @@ func set_ready_visuals(is_ready: bool):
 # ==============================================================================
 # RPCs
 # ==============================================================================
+# Kept for compatibility, but LobbyManager should be handling names now.
 @rpc("any_peer", "call_remote", "reliable")
 func set_name_on_server(new_name):
 	if multiplayer.is_server():
@@ -102,5 +101,4 @@ func set_name_on_server(new_name):
 
 @rpc("any_peer", "call_remote", "reliable")
 func set_color_on_server(_new_color):
-	# We leave this empty or redirect it, but we don't want it forcing 'player_color' logic
 	pass
