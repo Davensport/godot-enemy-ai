@@ -60,6 +60,7 @@ theme_override_font_sizes/font_size = 16
 text = "Logged in as:"
 
 [node name="MenuRoot" type="VBoxContainer" parent="MenuContainer"]
+visible = false
 custom_minimum_size = Vector2(500, 1)
 layout_mode = 1
 anchors_preset = 8
@@ -172,7 +173,6 @@ layout_mode = 2
 text = "Back"
 
 [node name="MenuSettings" type="PanelContainer" parent="MenuContainer"]
-visible = false
 custom_minimum_size = Vector2(500, 1)
 layout_mode = 1
 anchors_preset = 8
@@ -187,10 +187,45 @@ offset_bottom = 105.0
 grow_horizontal = 2
 grow_vertical = 2
 
-[node name="VBoxContainer" type="VBoxContainer" parent="MenuContainer/MenuSettings"]
+[node name="SettingsContent" type="VBoxContainer" parent="MenuContainer/MenuSettings"]
 layout_mode = 2
 
-[node name="Btn_Back_From_Settings" type="Button" parent="MenuContainer/MenuSettings/VBoxContainer"]
+[node name="Label" type="Label" parent="MenuContainer/MenuSettings/SettingsContent"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 25
+text = "SETTINGS"
+horizontal_alignment = 1
+
+[node name="HSeparator" type="HSeparator" parent="MenuContainer/MenuSettings/SettingsContent"]
+layout_mode = 2
+
+[node name="VideoRow" type="HBoxContainer" parent="MenuContainer/MenuSettings/SettingsContent"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="MenuContainer/MenuSettings/SettingsContent/VideoRow"]
+layout_mode = 2
+text = "Fullscreen Mode"
+
+[node name="FullScreenCheck" type="CheckBox" parent="MenuContainer/MenuSettings/SettingsContent/VideoRow"]
+layout_mode = 2
+
+[node name="AudioRow" type="HBoxContainer" parent="MenuContainer/MenuSettings/SettingsContent"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="MenuContainer/MenuSettings/SettingsContent/AudioRow"]
+layout_mode = 2
+text = "Master Volume"
+
+[node name="MasterVolumeProgress" type="ProgressBar" parent="MenuContainer/MenuSettings/SettingsContent/AudioRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+mouse_filter = 1
+step = 1.0
+
+[node name="HSeparator2" type="HSeparator" parent="MenuContainer/MenuSettings/SettingsContent"]
+layout_mode = 2
+
+[node name="Btn_Back_From_Settings" type="Button" parent="MenuContainer/MenuSettings/SettingsContent"]
 layout_mode = 2
 size_flags_vertical = 10
 text = "Main Menu"
@@ -243,7 +278,9 @@ text = "Quit Game"
 [connection signal="pressed" from="MenuContainer/MenuHostSetup/Btn_Back_To_Play" to="." method="_on_btn_back_to_play_pressed"]
 [connection signal="pressed" from="MenuContainer/MenuJoinLobby/Btn_ConfirmJoin" to="." method="_on_btn_confirm_join_pressed"]
 [connection signal="pressed" from="MenuContainer/MenuJoinLobby/Btn_Back_From_Join" to="." method="_on_btn_back_from_join_pressed"]
-[connection signal="pressed" from="MenuContainer/MenuSettings/VBoxContainer/Btn_Back_From_Settings" to="." method="_on_btn_settings_back_pressed"]
+[connection signal="toggled" from="MenuContainer/MenuSettings/SettingsContent/VideoRow/FullScreenCheck" to="." method="_on_fullscreen_check_toggled"]
+[connection signal="gui_input" from="MenuContainer/MenuSettings/SettingsContent/AudioRow/MasterVolumeProgress" to="." method="_on_master_volume_progress_gui_input"]
+[connection signal="pressed" from="MenuContainer/MenuSettings/SettingsContent/Btn_Back_From_Settings" to="." method="_on_btn_settings_back_pressed"]
 [connection signal="pressed" from="MenuContainer/VBoxContainer/HostButton" to="." method="_on_host_button_pressed"]
 [connection signal="pressed" from="MenuContainer/VBoxContainer/JoinButton" to="." method="_on_join_button_pressed"]
 [connection signal="pressed" from="MenuContainer/VBoxContainer/QuitButton" to="." method="_on_quit_button_pressed"]
