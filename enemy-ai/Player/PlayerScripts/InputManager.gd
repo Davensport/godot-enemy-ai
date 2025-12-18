@@ -6,6 +6,8 @@ signal on_jump
 signal on_attack_sword
 signal on_attack_fireball
 signal on_interact
+# NEW SIGNAL
+signal on_voice_toggled(is_talking: bool)
 
 # New Signals for Movement to listen to
 signal on_crouch_press
@@ -45,3 +47,9 @@ func _process(_delta):
 
 	if Input.is_action_just_pressed("interact"):
 		on_interact.emit()
+	
+	# NEW: Voice Logic (Assuming "push_to_talk" is defined in Project Settings -> Input Map)
+	if Input.is_action_just_pressed("push_to_talk"):
+		on_voice_toggled.emit(true)
+	elif Input.is_action_just_released("push_to_talk"):
+		on_voice_toggled.emit(false)
