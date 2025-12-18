@@ -106,12 +106,6 @@ func _ready():
 	# Force apply visuals now that we are ready
 	_apply_visuals()
 	
-	# Connect to the global signal
-	SignalBus.combat_status_changed.connect(_on_combat_status_changed)
-	
-	# Start exploring
-	MusicManager.play_explore_music()
-	
 	if is_multiplayer_authority():
 		# --- LOCAL PLAYER ---
 		Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
@@ -266,9 +260,3 @@ func _rpc_perform_respawn(spawn_pos: Vector3):
 	
 	if is_multiplayer_authority():
 		camera_rig.current = true
-		
-func _on_combat_status_changed(in_combat: bool):
-	if in_combat:
-		MusicManager.play_combat_music()
-	else:
-		MusicManager.play_explore_music()

@@ -6,10 +6,6 @@ func enter():
 	# Pass the target to the movement component immediately upon entering
 	if enemy.movement_component and is_instance_valid(enemy.player_target):
 		enemy.movement_component.set_target(enemy.player_target)
-		
-	# 2. MUSIC TRIGGER (Add this!)
-	# "Hey game, I am chasing the player now. Start the battle music!"
-	SignalBus.combat_status_changed.emit(true)
 
 func physics_update(delta):
 	# 1. Safety Check: If target is deleted or invalid, return to idle
@@ -66,9 +62,3 @@ func _handle_ground_movement(delta):
 		else:
 			# If we are stopped (e.g., waiting for path calculation), look at the player
 			enemy.movement_component.look_at_target()
-			
-func exit():
-	# Note: We DO NOT turn the music off here. 
-	# Why? Because usually you exit 'Chase' to go to 'Attack'.
-	# We want the music to keep pumping while attacking!
-	pass

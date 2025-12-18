@@ -4,34 +4,22 @@ extends Node3D
 @export var player_scene: PackedScene 
 
 func _ready():
-	# 1. CONNECT COMBAT SIGNAL
-	# We listen to the SignalBus to know when enemies are aggro'd
-	if SignalBus.has_signal("combat_status_changed"):
-		SignalBus.combat_status_changed.connect(_on_combat_status_changed)
-	else:
-		push_warning("SignalBus is missing 'combat_status_changed' - Music will not switch.")
+	# 1. DISABLE THIS CONNECTION
+	# The RootController now handles respawn logic internally.
+	# If we leave this connected, it will double-fire and delete the player.
+	# if SignalBus.has_signal("respawn_requested"):
+	# 	SignalBus.respawn_requested.connect(_on_respawn_requested)
 
-	# 2. START DEFAULT MUSIC
-	# We just ask for the "mode" now, no file paths needed here!
-	MusicManager.play_explore_music()
-	
-	# 3. MULTIPLAYER HANDSHAKE
+	# 2. THE HANDSHAKE (Keep this! This is good for initial joining)
 	if multiplayer.is_server():
 		_spawn_player(1)
 	else:
 		_register_player.rpc_id(1, multiplayer.get_unique_id())
+		
+	# Play the gameplay music
+	MusicManager.play_track("res://Mulitplayer_System/Audio/ES_Tomorrow - Hanna Lindgren.mp3") 
+	# (Make sure to right-click your music file in FileSystem -> Copy Path)
 
-# --- MUSIC SWITCHING LOGIC ---
-func _on_combat_status_changed(is_in_combat: bool):
-	# Debug print so you can verify the signal is arriving
-	# print("LevelManager: Switching Music. Combat Mode: ", is_in_combat)
-	
-	if is_in_combat:
-		MusicManager.play_combat_music()
-	else:
-		MusicManager.play_explore_music()
-
-# --- PLAYER SPAWNING LOGIC (Unchanged) ---
 @rpc("any_peer", "call_local", "reliable")
 func _register_player(new_player_id):
 	if multiplayer.is_server():
@@ -56,3 +44,15 @@ func _spawn_player(id):
 
 	player.set_multiplayer_authority(id)
 	players_node.add_child(player)
+
+# --- RESPAWN LOGIC (DISABLED) ---
+# We comment this out so it doesn't fight with RootController.gd
+
+# func _on_respawn_requested():
+# 	respawn_me_on_server.rpc_id(1)
+
+# @rpc("any_peer", "call_local")
+# func respawn_me_on_server():
+# 	# THIS WAS THE KILLER!
+# 	# It was deleting the player node while we were trying to teleport it.
+# 	pass
