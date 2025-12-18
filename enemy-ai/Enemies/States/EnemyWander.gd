@@ -21,6 +21,7 @@ func enter():
 	
 	# Set a random timeout
 	wander_time = randf_range(min_wait_time, max_wait_time)
+	
 
 func physics_update(delta):
 	wander_time -= delta

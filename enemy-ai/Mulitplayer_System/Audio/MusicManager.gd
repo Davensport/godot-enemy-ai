@@ -1,5 +1,6 @@
 extends Node
 
+
 @onready var _player_a = $MusicA
 @onready var _player_b = $MusicB
 
@@ -11,6 +12,9 @@ const FADE_TIME = 1.0 # Faster fade for combat feels snappier
 
 # NEW: Dictionary to store song positions { "song_path": 12.5 }
 var track_history = {} 
+
+# Add this variable to the top of MusicManager
+var combat_agents: int = 0
 
 func _ready():
 	_active_player = _player_a
@@ -57,3 +61,20 @@ func play_explore_music():
 
 func play_combat_music():
 	play_track("res://Mulitplayer_System/Audio/ES_Carriers - Jon Sumner.mp3")
+	
+# Add this new function to handle the logic
+func track_combat_state(is_entering_combat: bool):
+	if is_entering_combat:
+		combat_agents += 1
+		# If this is the FIRST enemy to get angry, start the music
+		if combat_agents == 1:
+			play_combat_music()
+	else:
+		combat_agents -= 1
+		# Safety check: Prevent negative numbers
+		if combat_agents < 0:
+			combat_agents = 0
+			
+		# If the LAST enemy just stopped chasing, go back to chill music
+		if combat_agents == 0:
+			play_explore_music()
