@@ -40,6 +40,9 @@ func _ready():
 		push_error("CRITICAL: No EnemyStats resource assigned to " + name)
 		return
 
+	# 1. GROUP ASSIGNMENT (Crucial for music logic)
+	add_to_group("active_enemies")
+
 	# Capture Spawn Point
 	home_position = global_position 
 
@@ -56,13 +59,12 @@ func _ready():
 
 func _physics_process(delta):
 	# 1. CLIENT STOP CHECK
-	# If we are NOT the server, stop thinking. Let the MultiplayerSynchronizer move us.
 	if not multiplayer.is_server():
 		return
 
 	# 2. SERVER LOGIC
 	
-	# --- NEW: INSTANTLY DROP DEAD TARGETS ---
+	# --- INSTANTLY DROP DEAD TARGETS ---
 	if is_instance_valid(player_target):
 		var hp = player_target.get("health")
 		# If target is dead OR invisible
@@ -73,6 +75,7 @@ func _physics_process(delta):
 			# Force a new search immediately
 			target_check_timer = 0.0
 	# ----------------------------------------
+	
 	# A. Periodic Targeting Check (Find closest player)
 	target_check_timer -= delta
 	if target_check_timer <= 0.0:
@@ -132,18 +135,14 @@ func _connect_signals():
 	if combat_component:
 		combat_component.on_attack_performed.connect(_on_attack_visuals)
 	
-	# SignalBus connections (removed player_spawned since we now poll automatically)
-	# SignalBus.player_died.connect(_on_player_died) 
+	# Note: We don't connect player_spawned/died here as we poll automatically now
 
 ## --- NETWORKED ANIMATION FUNCTIONS (RPCs) ---
 
 func play_animation(anim_name: String):
-	# If we are the Server, we tell everyone (including ourselves) to play the animation.
 	if multiplayer.is_server():
 		_rpc_play_animation.rpc(anim_name)
 
-# @rpc("call_local") means: Run this on the Server AND send it to all Clients.
-# @rpc("reliable") means: Make sure this packet definitely arrives.
 @rpc("call_local", "reliable")
 func _rpc_play_animation(anim_name: String):
 	if _animation_players.is_empty() or anim_name == "":
@@ -151,7 +150,6 @@ func _rpc_play_animation(anim_name: String):
 
 	for anim_player in _animation_players:
 		if anim_player.has_animation(anim_name):
-			# Optimization: If already playing this animation, don't restart it
 			if anim_player.current_animation == anim_name and anim_player.is_playing():
 				continue 
 			anim_player.play(anim_name, 0.2)
@@ -173,7 +171,6 @@ func rotate_smoothly(target_direction: Vector3, delta: float):
 	rotation.y = lerp_angle(current_y, target_y, turn_speed * delta)
 
 # --- REVISED TARGETING LOGIC (SERVER ONLY) ---
-# --- REVISED TARGETING LOGIC (SERVER ONLY) ---
 func find_player():
 	if not multiplayer.is_server():
 		return
@@ -186,23 +183,20 @@ func find_player():
 		if not is_instance_valid(player):
 			continue
 		
-		# --- CHECK 1: Is the player dead? ---
-		# We check the health component on the player
+		# Check health
 		var p_health = player.get("health")
 		if p_health and p_health.current_health <= 0:
-			continue # Skip this corpse
+			continue
 			
-		# --- CHECK 2: Is the player a ghost? ---
-		# We set collision_layer to 0 in RootController when they die.
+		# Check visibility (Ghosts)
 		if player.collision_layer == 0:
-			continue # Skip invisible players
+			continue 
 
 		var dist = global_position.distance_to(player.global_position)
 		if dist < closest_dist:
 			closest_dist = dist
 			closest_player = player
 	
-	# Only update if the target has actually changed
 	if closest_player != player_target:
 		player_target = closest_player
 		if movement_component: movement_component.set_target(player_target)
@@ -221,17 +215,11 @@ func _update_ui(current, max_hp):
 		health_bar.update_bar(current, safe_max)
 
 func _on_attack_visuals():
-	# Server detects the attack -> tells everyone to do the "Lunge" tween
 	if multiplayer.is_server():
 		_rpc_attack_visuals.rpc()
-	
-	## Logic (Damage) still happens here
-	#if stats:
-		#SignalBus.enemy_attack_occurred.emit(self, stats.attack_damage)
 
 @rpc("call_local", "reliable")
 func _rpc_attack_visuals():
-	# Visual "Lunge" effect synced on all clients
 	if visuals_container:
 		var tween = create_tween()
 		tween.tween_property(visuals_container, "position", Vector3(0, 0, -0.5), 0.1).as_relative()
@@ -250,6 +238,25 @@ func take_damage(amount: float):
 	if health_component:
 		health_component.take_damage(amount)
 
+# --- FIXED DEATH & MUSIC LOGIC ---
 func _on_death_event():
+	# 1. Visuals and State
 	state_machine.force_change_state("death")
 	SignalBus.enemy_died.emit(self)
+	
+	# 2. CHECK IF COMBAT IS OVER
+	# Check how many enemies are active. We subtract 1 because 'self' is technically
+	# still in the group at this exact moment before we remove it.
+	var enemies = get_tree().get_nodes_in_group("active_enemies")
+	
+	# If I was the last one (size <= 1), turn off combat music
+	if enemies.size() <= 1:
+		SignalBus.combat_status_changed.emit(false)
+	
+	# 3. Cleanup Group
+	remove_from_group("active_enemies")
+	
+func _on_aggro_area_entered(body):
+	if body.is_in_group("player"):
+		# Use SignalBus to start music
+		SignalBus.combat_status_changed.emit(true)

@@ -23,3 +23,6 @@ signal enemy_died(enemy_root: Node)
 
 # Emitted by BaseEnemy (optional, for UI)
 signal enemy_health_changed(enemy_root: Node, new_value: float, max_value: float)
+
+# Emitted when the player is in combat
+signal combat_status_changed(is_in_combat: bool)
