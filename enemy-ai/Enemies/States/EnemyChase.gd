@@ -1,11 +1,14 @@
 extends EnemyState
 
 func enter():
+	print("ENEMY IN CHASE STATE")
 	enemy.play_animation(stats.anim_move)
 	
 	# Pass the target to the movement component immediately upon entering
 	if enemy.movement_component and is_instance_valid(enemy.player_target):
 		enemy.movement_component.set_target(enemy.player_target)
+		
+	MusicManager.play_combat_music()
 
 func physics_update(delta):
 	# 1. Safety Check: If target is deleted or invalid, return to idle

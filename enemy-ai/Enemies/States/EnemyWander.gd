@@ -9,6 +9,7 @@ extends EnemyState
 var wander_time: float = 0.0
 
 func enter():
+	print("ENEMY IN WANDER STATE")
 	enemy.play_animation(stats.anim_move)
 	
 	# 1. Generate a valid target point relative to Home
@@ -24,10 +25,16 @@ func enter():
 func physics_update(delta):
 	wander_time -= delta
 	
-	# 1. High Priority: Interrupt if Player is spotted
+	# 1. High Priority: Interrupt if Player is spotted AND close
 	if is_instance_valid(enemy.player_target):
-		transition_requested.emit(self, "chase")
-		return
+		var distance = enemy.global_position.distance_to(enemy.player_target.global_position)
+		
+		# FIX: Only chase if they are actually inside our aggro range
+		var aggro_range = stats.aggro_range if "aggro_range" in stats else 10.0
+		
+		if distance <= aggro_range:
+			transition_requested.emit(self, "chase")
+			return
 
 	# 2. Check if finished (Time out OR Destination reached)
 	if wander_time <= 0 or _has_reached_destination():

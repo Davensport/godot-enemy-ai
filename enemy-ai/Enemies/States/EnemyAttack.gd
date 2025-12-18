@@ -6,6 +6,7 @@ var attack_timer: float = 0.0
 var is_attacking: bool = false 
 
 func enter():
+	print("ENEMY IN ATTACK STATE")
 	strafe_dir = 1 if randf() > 0.5 else -1
 	attack_timer = 0.0 
 
