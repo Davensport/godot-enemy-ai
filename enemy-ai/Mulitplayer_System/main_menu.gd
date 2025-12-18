@@ -48,7 +48,7 @@ func _ready():
 	_show_page(menu_root)
 	
 	# START THE MUSIC
-	MusicManager.play_menu_music()
+	MusicManager.play_track("res://Mulitplayer_System/Audio/ES_The Fairy Dance - Bonnie Grace.mp3")
 
 # --- HELPER FUNCTION: PAGE SWAPPER ---
 func _show_page(target_page: Control):

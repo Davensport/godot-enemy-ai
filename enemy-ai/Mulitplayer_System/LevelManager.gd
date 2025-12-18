@@ -16,7 +16,9 @@ func _ready():
 	else:
 		_register_player.rpc_id(1, multiplayer.get_unique_id())
 		
-	MusicManager.stop_menu_music()
+	# Play the gameplay music
+	MusicManager.play_track("res://Mulitplayer_System/Audio/ES_Tomorrow - Hanna Lindgren.mp3") 
+	# (Make sure to right-click your music file in FileSystem -> Copy Path)
 
 @rpc("any_peer", "call_local", "reliable")
 func _register_player(new_player_id):

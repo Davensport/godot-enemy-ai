@@ -1,11 +1,16 @@
-[gd_scene load_steps=3 format=3 uid="uid://cahy78vvj08ry"]
+[gd_scene load_steps=4 format=3 uid="uid://cahy78vvj08ry"]
 
 [ext_resource type="AudioStream" uid="uid://tmk8en8b258p" path="res://Mulitplayer_System/Audio/ES_The Fairy Dance - Bonnie Grace.mp3" id="1_008gs"]
 [ext_resource type="Script" uid="uid://da3mrkffarp05" path="res://Mulitplayer_System/Audio/MusicManager.gd" id="1_71puk"]
+[ext_resource type="AudioStream" uid="uid://c77n5exwss0jw" path="res://Mulitplayer_System/Audio/ES_Lotus Warrior - Yi Nantiro.mp3" id="3_j71eh"]
 
 [node name="MusicManager" type="Node"]
 script = ExtResource("1_71puk")
 
-[node name="MenuMusic" type="AudioStreamPlayer" parent="."]
+[node name="MusicA" type="AudioStreamPlayer" parent="."]
 stream = ExtResource("1_008gs")
+bus = &"Music"
+
+[node name="MusicB" type="AudioStreamPlayer" parent="."]
+stream = ExtResource("3_j71eh")
 bus = &"Music"

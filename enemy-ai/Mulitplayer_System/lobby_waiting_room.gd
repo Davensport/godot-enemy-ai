@@ -48,7 +48,7 @@ func _ready():
 	Global.customization_updated.connect(_refresh_display)
 	
 	# Ensure music is playing (wont restart if already on)
-	MusicManager.play_menu_music()
+	MusicManager.play_track("res://Mulitplayer_System/Audio/ES_The Fairy Dance - Bonnie Grace.mp3")
 
 
 func _on_spawner_spawned(_node):
